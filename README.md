@@ -2,13 +2,15 @@
 
 ![GitHub Release](https://img.shields.io/github/v/release/fragolinux/alpiNETools?display_name=tag)
 ![GitHub Release Date](https://img.shields.io/github/release-date/fragolinux/alpiNETools)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=release%20build)
+![Release Build](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=release%20build)
 ![License](https://img.shields.io/github/license/fragolinux/alpiNETools?branch=main)
 ![Docker Pulls](https://img.shields.io/docker/pulls/fragolinux/alpinetools)
 ![Docker Image Size](https://img.shields.io/docker/image-size/fragolinux/alpinetools/latest)
-![Docker Platforms](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-blue)
-![Alpine](https://img.shields.io/badge/base-Alpine%203.23.3-0D597F?logo=alpinelinux)
+![Platform](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-blue)
+![Base](https://img.shields.io/badge/base-Alpine%203.23.3-0D597F?logo=alpinelinux)
 ![Kubernetes](https://img.shields.io/badge/kubernetes-toolbox-326CE5?logo=kubernetes)
+![Security Alerts](https://img.shields.io/github/codeql-analysis/fragolinux/alpiNETools)
+![Security Enforced](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=security%20enforced)
 
 Minimal Alpine-based toolbox for networking analysis and Kubernetes debugging.
 Multi-arch, lightweight, and designed for on-demand troubleshooting.
@@ -81,5 +83,10 @@ docker run --rm -it \
 - ping
 - dig / nslookup
 - netcat / socat
+
+### Additional tools
+- hurl: CLI for HTTP requests and API testing — https://github.com/Orange-OpenSource/hurl
+- httpie: Human-friendly HTTP client — https://github.com/httpie/cli
+- dstp: File transfer over stdin/stdout (useful with SSH) — https://github.com/ycd/dstp
 
 ---
