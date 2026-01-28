@@ -1,19 +1,20 @@
-# .github/workflows/ci.yaml
-
 name: release-build
 
 on:
   push:
     tags:
       - '*.*.*'
+  schedule:
+    - cron: '0 3 * * *'   # nightly security scan
+
+permissions:
+  contents: write
+  packages: write
+  security-events: write
 
 jobs:
-  release:
+  build-and-scan:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +36,49 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v5
+      # Build but DO NOT push yet
+      - name: Build image (local)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: alpinetools:scan
+
+      # -------------------------
+      # Trivy scan (DECISIVE)
+      # -------------------------
+      - name: Trivy image scan (fail on HIGH+)
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          image-ref: alpinetools:scan
+          format: table
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          exit-code: 1
+
+      # -------------------------
+      # Trivy SARIF for GitHub Security tab
+      # -------------------------
+      - name: Trivy SARIF report
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          image-ref: alpinetools:scan
+          format: sarif
+          output: trivy-results.sarif
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      # -------------------------
+      # Push ONLY if scans passed
+      # -------------------------
+      - name: Push image to registries
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
@@ -46,7 +89,8 @@ jobs:
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/alpinetools:${{ steps.version.outputs.VERSION }}
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/alpinetools:latest
 
-      - uses: softprops/action-gh-release@v2
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: alpiNETools ${{ steps.version.outputs.VERSION }}
