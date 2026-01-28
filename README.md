@@ -9,7 +9,7 @@
 ![Platform](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-blue)
 ![Base](https://img.shields.io/badge/base-Alpine%203.23.3-0D597F?logo=alpinelinux)
 ![Kubernetes](https://img.shields.io/badge/kubernetes-toolbox-326CE5?logo=kubernetes)
-![Security Alerts](https://img.shields.io/github/codeql-analysis/fragolinux/alpiNETools)
+![Security Alerts](https://img.shields.io/github/dependabot/alerts/fragolinux/alpiNETools)
 ![Security Enforced](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=security%20enforced)
 
 Minimal Alpine-based toolbox for networking analysis and Kubernetes debugging.
