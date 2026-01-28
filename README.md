@@ -1,6 +1,7 @@
 # alpiNETools
 
-![GitHub Release](https://img.shields.io/github/v/release/fragolinux/alpiNETools?sort=semver)
+![GitHub Release](https://img.shields.io/github/v/release/fragolinux/alpiNETools?display_name=tag)
+![GitHub Release Date](https://img.shields.io/github/release-date/fragolinux/alpiNETools)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=release%20build)
 ![License](https://img.shields.io/github/license/fragolinux/alpiNETools?branch=main)
 ![Docker Pulls](https://img.shields.io/docker/pulls/fragolinux/alpinetools)
