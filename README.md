@@ -17,6 +17,11 @@ Multi-arch, lightweight, and designed for on-demand troubleshooting.
 
 ## Pull & Run
 
+### Supported architectures
+
+- linux/amd64
+- linux/arm64
+
 ### GitHub Container Registry (GHCR)
 
 Pull the image:
@@ -78,18 +83,3 @@ docker run --rm -it \
 - netcat / socat
 
 ---
-
-## Container images
-
-GitHub Container Registry:
-ghcr.io/fragolinux/alpinetools:<version>
-
-Docker Hub:
-docker.io/fragolinux/alpinetools:<version>
-
----
-
-## Supported architectures
-
-- linux/amd64
-- linux/arm64
