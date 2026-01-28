@@ -13,17 +13,6 @@ ARG HURL_VERSION=7.1.0
 # BuildKit provides TARGETARCH for multi-arch builds (amd64/arm64)
 ARG TARGETARCH
 
-# Download dstp binaries
-RUN case "$TARGETARCH" in \
-      amd64) DSTP_ARCH="amd64";; \
-      arm64) DSTP_ARCH="arm64";; \
-      *) echo "Unsupported TARGETARCH=$TARGETARCH" && exit 1;; \
-    esac && \
-    curl -sSL \
-      "https://github.com/ycd/dstp/releases/download/v${DSTP_VERSION}/dstp_${DSTP_VERSION}_Linux_${DSTP_ARCH}.tar.gz" \
-      | tar -xz -C /tmp dstp && \
-    chmod +x /tmp/dstp
-
 # Download hurl binaries
 RUN case "$TARGETARCH" in \
       amd64) HURL_ARCH="x86_64";; \
@@ -35,6 +24,23 @@ RUN case "$TARGETARCH" in \
       "https://github.com/Orange-OpenSource/hurl/releases/download/${HURL_VERSION}/${HURL_DIR}.tar.gz" \
       | tar -xz -C /tmp --strip-components=2 "${HURL_DIR}/bin/hurl" && \
     chmod +x /tmp/hurl
+
+########################################
+# GO BUILDER STAGE
+########################################
+FROM golang:1.25-alpine AS gobuilder
+
+ARG DSTP_VERSION=0.4.23
+ARG K9S_VERSION=v0.50.18
+ARG TARGETARCH
+
+RUN apk add --no-cache git ca-certificates && update-ca-certificates
+
+ENV CGO_ENABLED=0
+RUN GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
+      go install github.com/ycd/dstp@v${DSTP_VERSION} && \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
+      go install github.com/derailed/k9s@${K9S_VERSION}
 
 ########################################
 # FINAL IMAGE
@@ -65,13 +71,13 @@ RUN apk add --no-cache \
     nano \
     vim
 
-# Copy dstp and hurl from builder
-COPY --from=builder /tmp/dstp /usr/local/bin/dstp
+# Copy dstp and k9s built from source, plus hurl from builder
+COPY --from=gobuilder /out/dstp /usr/local/bin/dstp
+COPY --from=gobuilder /out/k9s /usr/local/bin/k9s
 COPY --from=builder /tmp/hurl /usr/local/bin/hurl
 
 # Kubernetes tools
 ARG KUBECTL_VERSION=v1.33.7
-ARG K9S_VERSION=v0.50.18
 ARG YQ_VERSION=v4.50.1
 
 # Install kubectl (arch-aware)
@@ -82,15 +88,6 @@ RUN case "$TARGETARCH" in \
     esac && \
     curl -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" \
       -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-
-# Install k9s (arch-aware)
-RUN case "$TARGETARCH" in \
-      amd64) K9S_ARCH="amd64";; \
-      arm64) K9S_ARCH="arm64";; \
-      *) echo "Unsupported TARGETARCH=$TARGETARCH" && exit 1;; \
-    esac && \
-    curl -sSL "https://github.com/derailed/k9s/releases/download/${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz" \
-      | tar -xz -C /usr/local/bin k9s && chmod +x /usr/local/bin/k9s
 
 # Install yq (arch-aware)
 RUN case "$TARGETARCH" in \
