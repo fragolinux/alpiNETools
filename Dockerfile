@@ -43,8 +43,7 @@ COPY --from=builder /tmp/kubectl /usr/local/bin/kubectl
 COPY --from=builder /tmp/k9s /usr/local/bin/k9s
 COPY --from=builder /tmp/yq /usr/local/bin/yq
 
-RUN addgroup -S devuser && adduser -S devuser -G devuser && \
-    mkdir /home/devuser && chown -R devuser:devuser /home/devuser
+RUN addgroup -S devuser && adduser -S devuser -G devuser
 
 USER devuser
 WORKDIR /home/devuser
