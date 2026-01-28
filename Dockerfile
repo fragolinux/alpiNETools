@@ -38,7 +38,7 @@ RUN apk add --no-cache git ca-certificates && update-ca-certificates
 
 ENV CGO_ENABLED=0
 RUN GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install github.com/ycd/dstp@v${DSTP_VERSION} && \
+      go install github.com/ycd/dstp/cmd/dstp@v${DSTP_VERSION} && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install github.com/derailed/k9s@${K9S_VERSION}
 
