@@ -34,10 +34,10 @@ Networking & diagnostics:
 ## Container images
 
 GitHub Container Registry:
-ghcr.io/fragolinux/alpiNETools:<version>
+ghcr.io/fragolinux/alpinetoools:<version>
 
 Docker Hub:
-docker.io/fragolinux/alpiNETools:<version>
+docker.io/fragolinux/alpinetoools:<version>
 
 ---
 
