@@ -48,6 +48,12 @@ jobs:
       # -------------------------
       # Trivy scan (DECISIVE)
       # -------------------------
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.2.0
+        with:
+          cache: true
+          version: v0.68.2
+
       - name: Trivy image scan (fail on HIGH+)
         uses: aquasecurity/trivy-action@0.33.1
         with:
@@ -56,6 +62,7 @@ jobs:
           vuln-type: os,library
           severity: HIGH,CRITICAL
           exit-code: 1
+          skip-setup-trivy: true
 
       # -------------------------
       # Trivy SARIF for GitHub Security tab
@@ -68,6 +75,7 @@ jobs:
           output: trivy-results.sarif
           vuln-type: os,library
           severity: HIGH,CRITICAL
+          skip-setup-trivy: true
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
