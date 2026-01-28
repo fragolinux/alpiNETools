@@ -1,32 +1,5 @@
 # syntax=docker/dockerfile:1.6
 ########################################
-# BUILDER STAGE
-########################################
-FROM alpine:3.23.3 AS builder
-
-# Install prerequisites for downloading binaries
-RUN apk add --no-cache curl ca-certificates tar gzip
-
-# Versions for external tools
-ARG DSTP_VERSION=0.4.23
-ARG HURL_VERSION=7.1.0
-
-# BuildKit provides TARGETARCH for multi-arch builds (amd64/arm64)
-ARG TARGETARCH
-
-# Download hurl binaries
-RUN case "$TARGETARCH" in \
-      amd64) HURL_ARCH="x86_64";; \
-      arm64) HURL_ARCH="aarch64";; \
-      *) echo "Unsupported TARGETARCH=$TARGETARCH" && exit 1;; \
-    esac && \
-    HURL_DIR="hurl-${HURL_VERSION}-${HURL_ARCH}-unknown-linux-gnu" && \
-    curl -sSL \
-      "https://github.com/Orange-OpenSource/hurl/releases/download/${HURL_VERSION}/${HURL_DIR}.tar.gz" \
-      | tar -xz -C /tmp --strip-components=2 "${HURL_DIR}/bin/hurl" && \
-    chmod +x /tmp/hurl
-
-########################################
 # GO BUILDER STAGE
 ########################################
 FROM golang:1.25-alpine AS gobuilder
@@ -42,8 +15,13 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install github.com/ycd/dstp/cmd/dstp@v${DSTP_VERSION} && \
+    BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install github.com/derailed/k9s@${K9S_VERSION}
+      go install -ldflags "\
+        -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} \
+        -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} \
+        -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}" \
+      github.com/derailed/k9s@${K9S_VERSION}
 
 ########################################
 # FINAL IMAGE
@@ -73,12 +51,17 @@ RUN apk add --no-cache \
     gzip \
     bzip2 \
     nano \
-    vim
+    vim \
+    sudo
 
-# Copy dstp and k9s built from source, plus hurl from builder
+  # Install hurl from Alpine edge (musl-compatible)
+  RUN apk add --no-cache \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ \
+    hurl
+
+# Copy dstp and k9s built from source
 COPY --from=gobuilder /out/dstp /usr/local/bin/dstp
 COPY --from=gobuilder /out/k9s /usr/local/bin/k9s
-COPY --from=builder /tmp/hurl /usr/local/bin/hurl
 
 # Kubernetes tools
 ARG KUBECTL_VERSION=v1.33.7
@@ -104,6 +87,10 @@ RUN case "$TARGETARCH" in \
 
 # Create non-root user
 RUN addgroup -S devuser && adduser -S devuser -G devuser
+
+# Allow devuser to use sudo without password
+RUN echo "devuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devuser && \
+  chmod 0440 /etc/sudoers.d/devuser
 
 USER devuser
 WORKDIR /home/devuser
