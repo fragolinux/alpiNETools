@@ -64,6 +64,7 @@ RUN apk add --no-cache \
     socat \
     netcat-openbsd \
     jq \
+    trurl \
     httpie \
     tar \
     gzip \
