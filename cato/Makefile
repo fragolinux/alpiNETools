@@ -17,7 +17,7 @@ help:
 	@echo "  make sec   - run Trivy on the locally built image"
 	@echo "  make run   - start an interactive shell in the image"
 	@echo "  make clean - prune buildx cache (local)"
-	@echo "  make prerelease - capture versions to ../VERSIONS.md"
+	@echo "  make prerelease - capture versions to ../VERSIONS.txt"
 	@echo "  make x86   - build for linux/amd64"
 	@echo "  make arm   - build for linux/arm64"
 	@echo "  make release - bump patch tag and push branch + tag"
@@ -94,7 +94,7 @@ prerelease:
 		-e KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION) \
 		-e YQ_VERSION=$(YQ_VERSION) \
 		-v "$(PWD)/versions.sh":/usr/local/bin/versions.sh:ro \
-		$(IMAGE) /usr/local/bin/versions.sh > ../VERSIONS.md
+		$(IMAGE) /usr/local/bin/versions.sh > ../VERSIONS.txt
 
 x86:
 	$(MAKE) build PLATFORM=linux/amd64
