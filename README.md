@@ -1,16 +1,16 @@
 # alpiNETools
 
-![GitHub Release](https://img.shields.io/github/v/release/fragolinux/alpiNETools?display_name=tag)
-![GitHub Release Date](https://img.shields.io/github/release-date/fragolinux/alpiNETools)
-![Release Build](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=release%20build)
-![License](https://img.shields.io/github/license/fragolinux/alpiNETools?branch=main)
-![Docker Pulls](https://img.shields.io/docker/pulls/fragolinux/alpinetools)
-![Docker Image Size](https://img.shields.io/docker/image-size/fragolinux/alpinetools/latest)
+![GitHub Release](https://img.shields.io/github/v/release/fragolinux/alpiNETools?display_name=tag&logo=github)
+![GitHub Release Date](https://img.shields.io/github/release-date/fragolinux/alpiNETools?logo=github)
+![Release Build](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=release%20build&logo=github)
+
+![Docker Pulls](https://img.shields.io/docker/pulls/fragolinux/alpinetools?logo=docker)
+![Docker Image Size](https://img.shields.io/docker/image-size/fragolinux/alpinetools/latest?logo=docker)
 ![Platform](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-blue)
+
 ![Base](https://img.shields.io/badge/base-Alpine%203.23.3-0D597F?logo=alpinelinux)
-![Kubernetes](https://img.shields.io/badge/kubernetes-toolbox-326CE5?logo=kubernetes)
-![CodeQL](https://img.shields.io/github/codeql-analysis/fragolinux/alpiNETools)
-![Security Enforced](https://img.shields.io/github/actions/workflow/status/fragolinux/alpiNETools/ci.yaml?label=security%20enforced)
+![License](https://img.shields.io/github/license/fragolinux/alpiNETools?branch=main)
+[![CodeQL](https://github.com/fragolinux/alpiNETools/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/fragolinux/alpiNETools/actions/workflows/github-code-scanning/codeql)
 
 Minimal Alpine-based toolbox for networking analysis and Kubernetes debugging.
 Multi-arch, lightweight, and designed for on-demand troubleshooting.
