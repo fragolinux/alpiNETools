@@ -2,10 +2,13 @@
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
 ########################################
-FROM golang:1.25-alpine AS gobuilder
+FROM golang:1.25.6-alpine AS gobuilder
 
 ARG DSTP_VERSION=0.4.23
+ARG DSTP_XNET_VERSION=v0.38.0
 ARG K9S_VERSION=v0.50.18
+ARG KUBECTL_SRC_VERSION=v1.33.7
+ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
 
 RUN apk add --no-cache git ca-certificates && update-ca-certificates
@@ -17,15 +20,27 @@ RUN --mount=type=secret,id=cato_ca,target=/usr/local/share/ca-certificates/cato-
 ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
+    git -c advice.detachedHead=false clone --depth 1 --branch v${DSTP_VERSION} https://github.com/ycd/dstp.git /src/dstp && \
+    cd /src/dstp && \
+    go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
+    go mod tidy && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install github.com/ycd/dstp/cmd/dstp@v${DSTP_VERSION} && \
+      go install ./cmd/dstp && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "\
         -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} \
         -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} \
         -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}" \
-      github.com/derailed/k9s@${K9S_VERSION}
+      github.com/derailed/k9s@${K9S_VERSION} && \
+    git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} \
+      https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
+    cd /src/kubernetes && \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
+      go build -o /out/kubectl ./cmd/kubectl && \
+    cd / && \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
+      go install github.com/mikefarah/yq/v4@${YQ_VERSION}
 
 ########################################
 # FINAL IMAGE
@@ -56,6 +71,7 @@ RUN apk add --no-cache \
     gzip \
     bzip2 \
     openssl \
+    file \
     nmap \
     nano \
     vim \
@@ -68,29 +84,17 @@ RUN apk add --no-cache \
 
 COPY --from=gobuilder /out/dstp /usr/local/bin/dstp
 COPY --from=gobuilder /out/k9s /usr/local/bin/k9s
-
-ARG KUBECTL_VERSION=v1.33.7
-ARG YQ_VERSION=v4.50.1
-
-RUN case "$TARGETARCH" in \
-      amd64) KUBECTL_ARCH="amd64";; \
-      arm64) KUBECTL_ARCH="arm64";; \
-      *) echo "Unsupported TARGETARCH=$TARGETARCH" && exit 1;; \
-    esac && \
-    curl -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" \
-      -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-
-RUN case "$TARGETARCH" in \
-      amd64) YQ_ARCH="amd64";; \
-      arm64) YQ_ARCH="arm64";; \
-      *) echo "Unsupported TARGETARCH=$TARGETARCH" && exit 1;; \
-    esac && \
-    curl -sSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
-      -o /usr/local/bin/yq && chmod +x /usr/local/bin/yq
+COPY --from=gobuilder /out/kubectl /usr/local/bin/kubectl
+COPY --from=gobuilder /out/yq /usr/local/bin/yq
 
 RUN addgroup -S devuser && adduser -S devuser -G devuser
 RUN echo "devuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devuser && \
   chmod 0440 /etc/sudoers.d/devuser
+
+RUN printf '%s\n' \
+  '[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion' \
+  > /home/devuser/.bashrc && \
+  chown devuser:devuser /home/devuser/.bashrc
 
 USER devuser
 WORKDIR /home/devuser

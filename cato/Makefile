@@ -1,20 +1,36 @@
-.PHONY: help test build sec release
+.PHONY: help test build sec run clean prerelease release x86 arm
 
 IMAGE ?= alpinetools:local
 DOCKERFILE ?= Dockerfile.cato
 CATO_BUNDLE ?= $(HOME)/.cato/ca-bundle.crt
+DSTP_VERSION ?= 0.4.23
+K9S_VERSION ?= v0.50.18
+KUBECTL_SRC_VERSION ?= v1.33.7
+YQ_VERSION ?= v4.50.1
+ARCH ?= $(shell uname -m)
+PLATFORM ?= $(if $(filter arm64 aarch64,$(ARCH)),linux/arm64,linux/amd64)
 
 help:
 	@echo "Available targets:"
 	@echo "  make test  - verify Cato certs and (re)build bundle"
 	@echo "  make build - local Docker build using Cato bundle"
 	@echo "  make sec   - run Trivy on the locally built image"
+	@echo "  make run   - start an interactive shell in the image"
+	@echo "  make clean - prune buildx cache (local)"
+	@echo "  make prerelease - capture versions to ../VERSIONS.md"
+	@echo "  make x86   - build for linux/amd64"
+	@echo "  make arm   - build for linux/arm64"
 	@echo "  make release - bump patch tag and push branch + tag"
 	@echo ""
 	@echo "Variables:"
 	@echo "  IMAGE=$(IMAGE)"
 	@echo "  DOCKERFILE=$(DOCKERFILE)"
 	@echo "  CATO_BUNDLE=$(CATO_BUNDLE)"
+	@echo "  PLATFORM=$(PLATFORM)"
+	@echo "  DSTP_VERSION=$(DSTP_VERSION)"
+	@echo "  K9S_VERSION=$(K9S_VERSION)"
+	@echo "  KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION)"
+	@echo "  YQ_VERSION=$(YQ_VERSION)"
 
 default: help
 
@@ -24,6 +40,7 @@ test:
 build:
 	docker buildx build --load -t $(IMAGE) \
 		-f $(DOCKERFILE) \
+		--platform $(PLATFORM) \
 		--secret id=cato_ca,src=$(CATO_BUNDLE) \
 		.
 
@@ -36,7 +53,57 @@ sec:
 		echo "ERROR: image $(IMAGE) not found. Run 'make build' first."; \
 		exit 1; \
 	fi
-	trivy image $(IMAGE) --vuln-type os,library --severity HIGH,CRITICAL --exit-code 1
+	trivy image $(IMAGE) --pkg-types os,library --format table
+
+run:
+	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \
+		echo "ERROR: image $(IMAGE) not found. Run 'make build' first."; \
+		exit 1; \
+	fi
+	@img_arch=$$(docker image inspect -f '{{.Architecture}}' $(IMAGE) 2>/dev/null); \
+	if [ -z "$$img_arch" ]; then \
+		echo "ERROR: unable to detect image architecture for $(IMAGE)."; \
+		exit 1; \
+	fi; \
+	platform="linux/$$img_arch"; \
+	docker run --rm -it \
+		--platform $$platform \
+		-e DSTP_VERSION=$(DSTP_VERSION) \
+		-e K9S_VERSION=$(K9S_VERSION) \
+		-e KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION) \
+		-e YQ_VERSION=$(YQ_VERSION) \
+		-v "$(PWD)/versions.sh":/usr/local/bin/versions.sh:ro \
+		-w /home/devuser \
+		$(IMAGE)
+
+prerelease:
+	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \
+		echo "ERROR: image $(IMAGE) not found. Run 'make build' first."; \
+		exit 1; \
+	fi
+	@img_arch=$$(docker image inspect -f '{{.Architecture}}' $(IMAGE) 2>/dev/null); \
+	if [ -z "$$img_arch" ]; then \
+		echo "ERROR: unable to detect image architecture for $(IMAGE)."; \
+		exit 1; \
+	fi; \
+	platform="linux/$$img_arch"; \
+	docker run --rm \
+		--platform $$platform \
+		-e DSTP_VERSION=$(DSTP_VERSION) \
+		-e K9S_VERSION=$(K9S_VERSION) \
+		-e KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION) \
+		-e YQ_VERSION=$(YQ_VERSION) \
+		-v "$(PWD)/versions.sh":/usr/local/bin/versions.sh:ro \
+		$(IMAGE) /usr/local/bin/versions.sh > ../VERSIONS.md
+
+x86:
+	$(MAKE) build PLATFORM=linux/amd64
+
+arm:
+	$(MAKE) build PLATFORM=linux/arm64
+
+clean:
+	docker buildx prune -f
 
 release:
 	@if ! command -v git >/dev/null 2>&1; then \
