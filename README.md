@@ -81,7 +81,12 @@ docker run --rm -it \
 - tcpdump
 - traceroute
 - ping
+- ip (iproute2) / ss
+- mtr
+- nmap
+- openssl
 - dig / nslookup
+- telnet
 - netcat / socat
 
 ### Additional tools
@@ -89,5 +94,6 @@ docker run --rm -it \
 - httpie: Human-friendly HTTP client — https://github.com/httpie/cli
 - trurl: URL parsing and manipulation tool — https://github.com/curl/trurl
 - dstp: File transfer over stdin/stdout (useful with SSH) — https://github.com/ycd/dstp
+- bash-completion: Bash completion scripts — https://github.com/scop/bash-completion
 
 ---

@@ -40,18 +40,24 @@ RUN apk add --no-cache \
     tcpdump \
     bind-tools \
     net-tools \
+    iproute2 \
     iputils \
     traceroute \
+    mtr \
     socat \
     netcat-openbsd \
+    busybox-extras \
     jq \
     trurl \
     httpie \
     tar \
     gzip \
     bzip2 \
+    openssl \
+    nmap \
     nano \
     vim \
+    bash-completion \
     sudo
 
   # Install hurl from Alpine edge (musl-compatible)
