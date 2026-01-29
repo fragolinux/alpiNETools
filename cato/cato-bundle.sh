@@ -196,6 +196,9 @@ main() {
   say "  -f Dockerfile.cato \\"
   say "  --secret id=cato_ca,src=$BUNDLE \\"
   say "  ."
+  say ""
+  say "Alternative (if make is installed):"
+  say "  make build"
 }
 
 main "$@"
