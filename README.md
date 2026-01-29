@@ -90,10 +90,10 @@ docker run --rm -it \
 - netcat / socat
 
 ### Additional tools
-- hurl: CLI for HTTP requests and API testing — https://github.com/Orange-OpenSource/hurl
-- httpie: Human-friendly HTTP client — https://github.com/httpie/cli
-- trurl: URL parsing and manipulation tool — https://github.com/curl/trurl
-- dstp: File transfer over stdin/stdout (useful with SSH) — https://github.com/ycd/dstp
-- bash-completion: Bash completion scripts — https://github.com/scop/bash-completion
+- [hurl](https://github.com/Orange-OpenSource/hurl): CLI for HTTP requests and API testing
+- [httpie](https://github.com/httpie/cli): Human-friendly HTTP client
+- [trurl](https://github.com/curl/trurl): URL parsing and manipulation tool
+- [dstp](https://github.com/ycd/dstp): File transfer over stdin/stdout (useful with SSH)
+- [bash-completion](https://github.com/scop/bash-completion): Bash completion scripts
 
 ---
