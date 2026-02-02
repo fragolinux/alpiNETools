@@ -59,10 +59,10 @@ jobs:
       # Trivy scan (DECISIVE)
       # -------------------------
       - name: Setup Trivy
-        uses: aquasecurity/setup-trivy@v0.2.0
+        uses: aquasecurity/setup-trivy@v0.2.5
         with:
           cache: true
-          version: v0.68.2
+          version: v0.69.0
 
       - name: Trivy image scan (fail on HIGH+)
         uses: aquasecurity/trivy-action@0.33.1
