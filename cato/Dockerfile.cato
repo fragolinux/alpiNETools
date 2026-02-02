@@ -2,7 +2,7 @@
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
 ########################################
-FROM golang:1.25.6-alpine AS gobuilder
+FROM dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee AS gobuilder
 
 ARG DSTP_VERSION=0.4.23
 ARG DSTP_XNET_VERSION=v0.38.0
@@ -11,7 +11,9 @@ ARG KUBECTL_SRC_VERSION=v1.33.7
 ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
 
-RUN apk add --no-cache git ca-certificates && update-ca-certificates
+RUN apk upgrade --no-cache && \
+    apk add --no-cache git ca-certificates && \
+    update-ca-certificates
 
 # Inject Cato CA bundle (local-only via BuildKit secret)
 RUN --mount=type=secret,id=cato_ca,target=/usr/local/share/ca-certificates/cato-ca.crt \
@@ -25,7 +27,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
     go mod tidy && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install ./cmd/dstp && \
+      go install -ldflags "-s -w" ./cmd/dstp && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "\
@@ -37,19 +39,23 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go build -o /out/kubectl ./cmd/kubectl && \
+      go build -ldflags "-s -w" -o /out/kubectl ./cmd/kubectl && \
     cd / && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install github.com/mikefarah/yq/v4@${YQ_VERSION}
+      go install -ldflags "-s -w" github.com/mikefarah/yq/v4@${YQ_VERSION}
 
 ########################################
 # FINAL IMAGE
 ########################################
-FROM alpine:3.23.3
+FROM dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
 
 ARG TARGETARCH
 
-RUN apk add --no-cache \
+RUN apk upgrade --no-cache && \
+    apk add --no-cache --upgrade \
+    libcrypto3 \
+    libssl3 \
+    && apk add --no-cache \
     bash \
     curl \
     ca-certificates \
@@ -75,8 +81,10 @@ RUN apk add --no-cache \
     nmap \
     nano \
     vim \
-    bash-completion \
-    sudo
+    bash-completion
+
+# If you ever need sudo inside the container, re-add:
+#   apk add --no-cache sudo
 
 RUN apk add --no-cache \
     --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ \
@@ -87,10 +95,14 @@ COPY --from=gobuilder /out/k9s /usr/local/bin/k9s
 COPY --from=gobuilder /out/kubectl /usr/local/bin/kubectl
 COPY --from=gobuilder /out/yq /usr/local/bin/yq
 
+# Create non-root user
 RUN addgroup -S devuser && adduser -S devuser -G devuser
-RUN echo "devuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devuser && \
-  chmod 0440 /etc/sudoers.d/devuser
-
+#
+# If sudo is re-enabled, allow devuser to use sudo without password:
+# RUN echo "devuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devuser && \
+#   chmod 0440 /etc/sudoers.d/devuser
+#
+# Enable bash completion for devuser
 RUN printf '%s\n' \
   '[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion' \
   > /home/devuser/.bashrc && \
