@@ -13,6 +13,7 @@
 [![CodeQL](https://github.com/fragolinux/alpiNETools/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/fragolinux/alpiNETools/actions/workflows/github-code-scanning/codeql)
 
 Minimal Alpine-based toolbox for networking analysis and Kubernetes debugging.
+Now built on [hardened base images](https://www.docker.com/products/hardened-images/) for improved security.
 Multi-arch, lightweight, and designed for on-demand troubleshooting.
 
 ---
