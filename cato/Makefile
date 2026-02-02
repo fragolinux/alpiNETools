@@ -45,15 +45,33 @@ build:
 		.
 
 sec:
-	@if ! command -v trivy >/dev/null 2>&1; then \
-		echo "ERROR: trivy not found. Install it and retry."; \
-		exit 1; \
-	fi
+	@missing=0; \
+	for cmd in docker trivy grype; do \
+		if ! command -v $$cmd >/dev/null 2>&1; then \
+			echo "ERROR: $$cmd not found."; \
+			missing=1; \
+		fi; \
+	done; \
+	if ! docker scout version >/dev/null 2>&1; then \
+		echo "ERROR: docker scout not available (install Docker Scout CLI or enable Docker Desktop Scout)."; \
+		missing=1; \
+	fi; \
+	if [ $$missing -ne 0 ]; then exit 1; fi
 	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \
 		echo "ERROR: image $(IMAGE) not found. Run 'make build' first."; \
 		exit 1; \
 	fi
-	trivy image $(IMAGE) --pkg-types os,library --format table
+	@secfile="../SECURITY.txt"; \
+	: > $$secfile; \
+	{ echo "== TRIVY ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
+	  trivy image $(IMAGE) --pkg-types os,library --format table; \
+	  echo; } | tee -a $$secfile; \
+	{ echo "== DOCKER SCOUT ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
+	  docker scout cves $(IMAGE) --format only-packages --only-vuln-packages; \
+	  echo; } | tee -a $$secfile; \
+	{ echo "== GRYPE ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
+	  grype $(IMAGE); \
+	  echo; } | tee -a $$secfile
 
 run:
 	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \

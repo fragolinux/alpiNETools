@@ -1,0 +1,70 @@
+== TRIVY (2026-02-02T15:40:50Z) ==
+
+Report Summary
+
+┌─────────────────────────────────┬──────────┬─────────────────┬─────────┐
+│             Target              │   Type   │ Vulnerabilities │ Secrets │
+├─────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ alpinetools:local (alpine 3.23) │  alpine  │        0        │    -    │
+├─────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ usr/local/bin/dstp              │ gobinary │        0        │    -    │
+├─────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ usr/local/bin/k9s               │ gobinary │        0        │    -    │
+├─────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ usr/local/bin/kubectl           │ gobinary │        0        │    -    │
+├─────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ usr/local/bin/yq                │ gobinary │        0        │    -    │
+└─────────────────────────────────┴──────────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+== DOCKER SCOUT (2026-02-02T15:40:54Z) ==
+
+       Name        │   Version   │  Type  │       Vulnerabilities       
+───────────────────┼─────────────┼────────┼─────────────────────────────
+ busybox           │ 1.37.0-r30  │ apk    │    0C     0H     1M     0L  
+ curl              │ 8.17.0-r1   │ apk    │    0C     0H     5M     1L  
+ k8s.io/kubernetes │ 1.33.7      │ golang │    0C     0H     1M     1L  
+ libpcap           │ 1.10.5-r1   │ apk    │    0C     0H     0M     2L  
+ net-tools         │ 2.10-r3     │ apk    │    0C     0H     1M     0L  
+ pip               │ 25.1.1      │ pypi   │    0C     0H     1M     0L  
+ tar               │ 1.35-r4     │ apk    │    0C     0H     2M     0L  
+ vim               │ 9.1.1942-r0 │ apk    │    0C     1H     0M     0L  
+ wheel             │ 0.45.1      │ pypi   │    0C     1H     0M     0L  
+ wheel             │ 0.46.1      │ pypi   │    0C     1H     0M     0L  
+
+== GRYPE (2026-02-02T15:41:13Z) ==
+NAME            INSTALLED    FIXED IN  TYPE    VULNERABILITY        SEVERITY  EPSS           RISK   
+python3         3.12.12-r0             apk     CVE-2025-13836       Critical  0.1% (28th)    < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-12084       Medium    < 0.1% (25th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2026-0865        Medium    < 0.1% (25th)  < 0.1  
+jaraco-context  5.3.0        6.1.0     python  GHSA-58pv-8j8x-9vj2  High      < 0.1% (17th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-15282       Medium    < 0.1% (24th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2026-0672        Medium    < 0.1% (24th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-12781       Medium    < 0.1% (20th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-11468       Medium    < 0.1% (19th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-15366       Medium    < 0.1% (17th)  < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-15367       Medium    < 0.1% (17th)  < 0.1  
+busybox         1.37.0-r30             apk     CVE-2025-60876       Medium    < 0.1% (16th)  < 0.1  
+busybox-binsh   1.37.0-r30             apk     CVE-2025-60876       Medium    < 0.1% (16th)  < 0.1  
+busybox-extras  1.37.0-r30             apk     CVE-2025-60876       Medium    < 0.1% (16th)  < 0.1  
+ssl_client      1.37.0-r30             apk     CVE-2025-60876       Medium    < 0.1% (16th)  < 0.1  
+curl            8.17.0-r1              apk     CVE-2025-14819       Medium    < 0.1% (10th)  < 0.1  
+curl            8.17.0-r1              apk     CVE-2025-15224       Low       < 0.1% (18th)  < 0.1  
+py3-wheel       0.46.1-r0              apk     CVE-2026-24049       High      < 0.1% (5th)   < 0.1  
+wheel           0.45.1       0.46.2    python  GHSA-8rrh-rw8j-w5fx  High      < 0.1% (5th)   < 0.1  
+wheel           0.46.1       0.46.2    python  GHSA-8rrh-rw8j-w5fx  High      < 0.1% (5th)   < 0.1  
+curl            8.17.0-r1              apk     CVE-2025-14524       Medium    < 0.1% (8th)   < 0.1  
+curl            8.17.0-r1              apk     CVE-2025-15079       Medium    < 0.1% (8th)   < 0.1  
+py3-pip         25.1.1-r1              apk     CVE-2025-8869        Medium    < 0.1% (5th)   < 0.1  
+pip             25.1.1       25.3      python  GHSA-4xh5-x5gv-qwph  Medium    < 0.1% (5th)   < 0.1  
+vim             9.1.1942-r0            apk     CVE-2025-66476       High      < 0.1% (1st)   < 0.1  
+vim-common      9.1.1942-r0            apk     CVE-2025-66476       High      < 0.1% (1st)   < 0.1  
+xxd             9.1.1942-r0            apk     CVE-2025-66476       High      < 0.1% (1st)   < 0.1  
+curl            8.17.0-r1              apk     CVE-2025-13034       Medium    < 0.1% (4th)   < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-13837       Medium    < 0.1% (4th)   < 0.1  
+python3         3.12.12-r0             apk     CVE-2025-6075        Low       < 0.1% (9th)   < 0.1  
+curl            8.17.0-r1              apk     CVE-2025-14017       Medium    < 0.1% (0th)   < 0.1
+
