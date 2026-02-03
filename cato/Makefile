@@ -1,4 +1,4 @@
-.PHONY: help test build sec run clean prerelease release x86 arm
+.PHONY: help test build sec run-local run-gh run-dh clean prerelease release x86 arm
 
 IMAGE ?= alpinetools:local
 DOCKERFILE ?= Dockerfile.cato
@@ -15,7 +15,9 @@ help:
 	@echo "  make test  - verify Cato certs and (re)build bundle"
 	@echo "  make build - local Docker build using Cato bundle"
 	@echo "  make sec   - run Trivy on the locally built image"
-	@echo "  make run   - start an interactive shell in the image"
+	@echo "  make run-local - start an interactive shell in the local image"
+	@echo "  make run-gh - start an interactive shell in latest GHCR image"
+	@echo "  make run-dh - start an interactive shell in latest Docker Hub image"
 	@echo "  make clean - prune buildx cache (local)"
 	@echo "  make prerelease - capture versions to ../VERSIONS.txt"
 	@echo "  make x86   - build for linux/amd64"
@@ -73,7 +75,7 @@ sec:
 	  grype $(IMAGE); \
 	  echo; } | tee -a $$secfile
 
-run:
+run-local:
 	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \
 		echo "ERROR: image $(IMAGE) not found. Run 'make build' first."; \
 		exit 1; \
@@ -92,7 +94,27 @@ run:
 		-e YQ_VERSION=$(YQ_VERSION) \
 		-v "$(PWD)/versions.sh":/usr/local/bin/versions.sh:ro \
 		-w /home/devuser \
-		$(IMAGE)
+		$(IMAGE) -lc 'echo "Check all tool versions running: versions.sh"; exec bash'
+
+run-gh:
+	@docker run --rm -it \
+		-e DSTP_VERSION=$(DSTP_VERSION) \
+		-e K9S_VERSION=$(K9S_VERSION) \
+		-e KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION) \
+		-e YQ_VERSION=$(YQ_VERSION) \
+		-v "$(PWD)/versions.sh":/usr/local/bin/versions.sh:ro \
+		-w /home/devuser \
+		ghcr.io/fragolinux/alpinetools:latest -lc 'echo "Check all tool versions running: versions.sh"; exec bash'
+
+run-dh:
+	@docker run --rm -it \
+		-e DSTP_VERSION=$(DSTP_VERSION) \
+		-e K9S_VERSION=$(K9S_VERSION) \
+		-e KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION) \
+		-e YQ_VERSION=$(YQ_VERSION) \
+		-v "$(PWD)/versions.sh":/usr/local/bin/versions.sh:ro \
+		-w /home/devuser \
+		fragolinux/alpinetools:latest -lc 'echo "Check all tool versions running: versions.sh"; exec bash'
 
 prerelease:
 	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \
