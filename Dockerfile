@@ -1,9 +1,14 @@
 # syntax=docker/dockerfile:1.6
+ARG GO_BUILDER_IMAGE=dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee
+ARG FINAL_BASE_IMAGE=dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
+ARG GO_VERSION=1.25.7
+
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
 ########################################
-FROM dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee AS gobuilder
+FROM ${GO_BUILDER_IMAGE} AS gobuilder
 
+ARG GO_VERSION
 ARG DSTP_VERSION=0.4.23
 ARG DSTP_XNET_VERSION=v0.38.0
 ARG K9S_VERSION=v0.50.18
@@ -12,8 +17,17 @@ ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
 
 RUN apk upgrade --no-cache && \
-    apk add --no-cache git ca-certificates && \
+    apk add --no-cache git ca-certificates curl tar && \
     update-ca-certificates
+
+# Force a patched Go toolchain so Trivy doesn't flag Go stdlib CVEs in built binaries.
+ENV PATH="/usr/local/go/bin:${PATH}"
+RUN arch="${TARGETARCH:-amd64}" && \
+    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${arch}.tar.gz" -o /tmp/go.tgz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf /tmp/go.tgz && \
+    rm -f /tmp/go.tgz && \
+    go version
 
 ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod \
@@ -43,7 +57,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 ########################################
 # FINAL IMAGE
 ########################################
-FROM dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
+FROM ${FINAL_BASE_IMAGE}
 
 ARG TARGETARCH
 

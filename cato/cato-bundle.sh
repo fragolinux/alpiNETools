@@ -129,6 +129,22 @@ check_cato_in_chain() {
   return 1
 }
 
+can_reach_proxy_without_cato() {
+  # If this succeeds, there is no point in forcing a Cato bundle.
+  # We keep this intentionally simple: the goal is to detect the "normal"
+  # public internet path (non-corporate MITM).
+  if have curl; then
+    curl -fsS --max-time 5 https://proxy.golang.org/ >/dev/null 2>&1
+    return $?
+  fi
+  if have openssl; then
+    # Best-effort: just complete a TLS handshake.
+    openssl s_client -connect "proxy.golang.org:443" -servername "proxy.golang.org" </dev/null >/dev/null 2>&1
+    return $?
+  fi
+  return 1
+}
+
 main() {
   have openssl || fail "openssl is required"
 
@@ -137,6 +153,12 @@ main() {
   say "Intermediate CA: $HOME_CA_INT"
   say "Bundle: $BUNDLE"
   say ""
+
+  if can_reach_proxy_without_cato; then
+    say "TLS check: https://proxy.golang.org is reachable without Cato bundle."
+    say "Skipping Cato bundle generation (not needed on this host)."
+    exit 0
+  fi
 
   if ! check_cert_file "$HOME_CA_ROOT"; then
     fail "Missing $HOME_CA_ROOT (place the Cato root CA at this path and re-run)"

@@ -3,6 +3,9 @@
 IMAGE ?= alpinetools:local
 DOCKERFILE ?= Dockerfile.cato
 CATO_BUNDLE ?= $(HOME)/.cato/ca-bundle.crt
+GO_BUILDER_IMAGE ?= dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee
+FINAL_BASE_IMAGE ?= dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
+GO_VERSION ?= 1.25.7
 DSTP_VERSION ?= 0.4.23
 K9S_VERSION ?= v0.50.18
 KUBECTL_SRC_VERSION ?= v1.33.7
@@ -29,6 +32,9 @@ help:
 	@echo "  DOCKERFILE=$(DOCKERFILE)"
 	@echo "  CATO_BUNDLE=$(CATO_BUNDLE)"
 	@echo "  PLATFORM=$(PLATFORM)"
+	@echo "  GO_BUILDER_IMAGE=$(GO_BUILDER_IMAGE)"
+	@echo "  FINAL_BASE_IMAGE=$(FINAL_BASE_IMAGE)"
+	@echo "  GO_VERSION=$(GO_VERSION)"
 	@echo "  DSTP_VERSION=$(DSTP_VERSION)"
 	@echo "  K9S_VERSION=$(K9S_VERSION)"
 	@echo "  KUBECTL_SRC_VERSION=$(KUBECTL_SRC_VERSION)"
@@ -40,10 +46,36 @@ test:
 	./cato-bundle.sh
 
 build:
+	@set -e; \
+	secret_args=""; \
+	need_cato=0; \
+	if command -v curl >/dev/null 2>&1; then \
+		if curl -fsS --max-time 5 https://proxy.golang.org/ >/dev/null 2>&1; then \
+			need_cato=0; \
+		else \
+			need_cato=1; \
+		fi; \
+	else \
+		need_cato=1; \
+	fi; \
+	if [ "$$need_cato" -eq 1 ]; then \
+		if [ ! -f "$(CATO_BUNDLE)" ]; then \
+			echo "proxy.golang.org not reachable, attempting Cato bundle generation..."; \
+			./cato-bundle.sh; \
+		fi; \
+		if [ -f "$(CATO_BUNDLE)" ]; then \
+			secret_args="--secret id=cato_ca,src=$(CATO_BUNDLE)"; \
+		else \
+			echo "WARNING: Cato bundle not available; building without it."; \
+		fi; \
+	fi; \
 	docker buildx build --load -t $(IMAGE) \
 		-f $(DOCKERFILE) \
 		--platform $(PLATFORM) \
-		--secret id=cato_ca,src=$(CATO_BUNDLE) \
+		--build-arg GO_BUILDER_IMAGE=$(GO_BUILDER_IMAGE) \
+		--build-arg FINAL_BASE_IMAGE=$(FINAL_BASE_IMAGE) \
+		--build-arg GO_VERSION=$(GO_VERSION) \
+		$$secret_args \
 		.
 
 sec:

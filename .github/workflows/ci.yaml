@@ -49,9 +49,12 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          pull: true
           push: false
           load: true
           tags: alpinetools:scan
+          build-args: |
+            GO_VERSION=1.25.7
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -62,7 +65,7 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.5
         with:
           cache: true
-          version: v0.69.0
+          version: v0.69.1
 
       - name: Trivy image scan (fail on HIGH+)
         uses: aquasecurity/trivy-action@0.33.1
@@ -100,8 +103,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          pull: true
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            GO_VERSION=1.25.7
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
