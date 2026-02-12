@@ -91,7 +91,6 @@ RUN apk upgrade --no-cache && \
     file \
     nmap \
     nano \
-    vim \
     bash-completion
 
 # If you ever need sudo inside the container, re-add:

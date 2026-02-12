@@ -53,7 +53,6 @@ print_ver bzip2 bzip2 --version
 print_ver openssl openssl version
 print_ver nmap nmap --version
 print_ver nano nano --version
-print_ver vim vim --version
 print_ver file file --version
 print_ver hurl hurl --version
 if [[ -n "${DSTP_VERSION:-}" ]]; then
