@@ -48,25 +48,24 @@ test:
 build:
 	@set -e; \
 	secret_args=""; \
-	need_cato=0; \
-	if command -v curl >/dev/null 2>&1; then \
-		if curl -fsS --max-time 5 https://proxy.golang.org/ >/dev/null 2>&1; then \
-			need_cato=0; \
-		else \
-			need_cato=1; \
-		fi; \
-	else \
-		need_cato=1; \
+	is_macos=0; \
+	cato_vpn=0; \
+	if [ "$$(uname -s)" = "Darwin" ]; then \
+		is_macos=1; \
 	fi; \
-	if [ "$$need_cato" -eq 1 ]; then \
-		if [ ! -f "$(CATO_BUNDLE)" ]; then \
-			echo "proxy.golang.org not reachable, attempting Cato bundle generation..."; \
-			./cato-bundle.sh; \
+	if [ "$$is_macos" -eq 1 ] && command -v openssl >/dev/null 2>&1; then \
+		if openssl s_client -showcerts -connect proxy.golang.org:443 -servername proxy.golang.org </dev/null 2>/dev/null | \
+			openssl x509 -noout -issuer -subject 2>/dev/null | grep -qi cato; then \
+			cato_vpn=1; \
 		fi; \
+	fi; \
+	if [ "$$is_macos" -eq 1 ] && [ "$$cato_vpn" -eq 1 ]; then \
 		if [ -f "$(CATO_BUNDLE)" ]; then \
 			secret_args="--secret id=cato_ca,src=$(CATO_BUNDLE)"; \
+			echo "Info: Cato VPN detected on macOS, using Cato CA bundle."; \
 		else \
-			echo "WARNING: Cato bundle not available; building without it."; \
+			echo "WARNING: Cato VPN detected on macOS but $(CATO_BUNDLE) is missing."; \
+			echo "WARNING: Run 'make test' manually, then retry 'make build'."; \
 		fi; \
 	fi; \
 	docker buildx build --load -t $(IMAGE) \

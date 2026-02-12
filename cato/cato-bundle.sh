@@ -154,10 +154,18 @@ main() {
   say "Bundle: $BUNDLE"
   say ""
 
-  if can_reach_proxy_without_cato; then
-    say "TLS check: https://proxy.golang.org is reachable without Cato bundle."
+  local need_bundle=0
+  if check_cato_in_chain; then
+    say "VPN check: Cato detected in TLS chain."
+    need_bundle=1
+  elif can_reach_proxy_without_cato; then
+    say "TLS check: https://proxy.golang.org is reachable and Cato is not detected."
     say "Skipping Cato bundle generation (not needed on this host)."
     exit 0
+  else
+    say "TLS check failed and Cato was not detected in chain."
+    say "Proceeding with bundle generation as a safe fallback."
+    need_bundle=1
   fi
 
   if ! check_cert_file "$HOME_CA_ROOT"; then
@@ -205,7 +213,7 @@ main() {
     say "WARNING: Bundle does not contain 'Cato' in subjects/issuers."
   fi
 
-  if check_cato_in_chain; then
+  if [[ "$need_bundle" -eq 1 ]] && check_cato_in_chain; then
     say "VPN check: Cato detected in TLS chain."
   else
     say "WARNING: Cato NOT detected in TLS chain."

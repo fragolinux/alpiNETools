@@ -48,8 +48,19 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} \
       https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
+    KUBE_GIT_MAJOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f1)" && \
+    KUBE_GIT_MINOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f2)" && \
+    KUBE_GIT_COMMIT="$(git rev-parse --verify HEAD)" && \
+    KUBE_BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" && \
+    KUBE_LDFLAGS="-s -w \
+      -X k8s.io/component-base/version.gitMajor=${KUBE_GIT_MAJOR} \
+      -X k8s.io/component-base/version.gitMinor=${KUBE_GIT_MINOR} \
+      -X k8s.io/component-base/version.gitVersion=${KUBECTL_SRC_VERSION} \
+      -X k8s.io/component-base/version.gitCommit=${KUBE_GIT_COMMIT} \
+      -X k8s.io/component-base/version.gitTreeState=clean \
+      -X k8s.io/component-base/version.buildDate=${KUBE_BUILD_DATE}" && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go build -ldflags "-s -w" -o /out/kubectl ./cmd/kubectl && \
+      go build -trimpath -ldflags "${KUBE_LDFLAGS}" -o /out/kubectl ./cmd/kubectl && \
     cd / && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "-s -w" github.com/mikefarah/yq/v4@${YQ_VERSION}

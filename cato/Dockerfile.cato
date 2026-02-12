@@ -20,13 +20,21 @@ RUN apk upgrade --no-cache && \
     apk add --no-cache git ca-certificates curl tar && \
     update-ca-certificates
 
-# Inject Cato CA bundle (local-only via BuildKit secret)
-RUN --mount=type=secret,id=cato_ca,target=/usr/local/share/ca-certificates/cato-ca.crt,required=false \
-    update-ca-certificates
+# Inject Cato CA bundle (local-only via BuildKit secret).
+# The secret can be a multi-cert bundle, so use it directly for TLS clients.
+RUN --mount=type=secret,id=cato_ca,target=/run/secrets/cato_ca,required=false \
+    if [ -s /run/secrets/cato_ca ]; then \
+      cp /run/secrets/cato_ca /usr/local/share/ca-certificates/cato-ca.crt; \
+      update-ca-certificates; \
+    fi
 
 # Force a patched Go toolchain so Trivy doesn't flag Go stdlib CVEs in built binaries.
 ENV PATH="/usr/local/go/bin:${PATH}"
-RUN arch="${TARGETARCH:-amd64}" && \
+RUN --mount=type=secret,id=cato_ca,target=/run/secrets/cato_ca,required=false \
+    if [ -s /run/secrets/cato_ca ]; then \
+      export CURL_CA_BUNDLE=/run/secrets/cato_ca SSL_CERT_FILE=/run/secrets/cato_ca; \
+    fi && \
+    arch="${TARGETARCH:-amd64}" && \
     curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${arch}.tar.gz" -o /tmp/go.tgz && \
     rm -rf /usr/local/go && \
     tar -C /usr/local -xzf /tmp/go.tgz && \
@@ -36,6 +44,10 @@ RUN arch="${TARGETARCH:-amd64}" && \
 ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=secret,id=cato_ca,target=/run/secrets/cato_ca,required=false \
+    if [ -s /run/secrets/cato_ca ]; then \
+      export CURL_CA_BUNDLE=/run/secrets/cato_ca SSL_CERT_FILE=/run/secrets/cato_ca GIT_SSL_CAINFO=/run/secrets/cato_ca; \
+    fi && \
     git -c advice.detachedHead=false clone --depth 1 --branch v${DSTP_VERSION} https://github.com/ycd/dstp.git /src/dstp && \
     cd /src/dstp && \
     go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
@@ -52,8 +64,19 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} \
       https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
+    KUBE_GIT_MAJOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f1)" && \
+    KUBE_GIT_MINOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f2)" && \
+    KUBE_GIT_COMMIT="$(git rev-parse --verify HEAD)" && \
+    KUBE_BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" && \
+    KUBE_LDFLAGS="-s -w \
+      -X k8s.io/component-base/version.gitMajor=${KUBE_GIT_MAJOR} \
+      -X k8s.io/component-base/version.gitMinor=${KUBE_GIT_MINOR} \
+      -X k8s.io/component-base/version.gitVersion=${KUBECTL_SRC_VERSION} \
+      -X k8s.io/component-base/version.gitCommit=${KUBE_GIT_COMMIT} \
+      -X k8s.io/component-base/version.gitTreeState=clean \
+      -X k8s.io/component-base/version.buildDate=${KUBE_BUILD_DATE}" && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go build -ldflags "-s -w" -o /out/kubectl ./cmd/kubectl && \
+      go build -trimpath -ldflags "${KUBE_LDFLAGS}" -o /out/kubectl ./cmd/kubectl && \
     cd / && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "-s -w" github.com/mikefarah/yq/v4@${YQ_VERSION}
