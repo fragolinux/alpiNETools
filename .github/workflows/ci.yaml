@@ -65,7 +65,7 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.5
         with:
           cache: true
-          version: v0.69.1
+          version: v0.69.2
 
       - name: Trivy image scan (fail on HIGH+)
         uses: aquasecurity/trivy-action@0.33.1

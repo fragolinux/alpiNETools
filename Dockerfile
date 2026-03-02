@@ -12,6 +12,9 @@ ARG GO_VERSION
 ARG DSTP_VERSION=0.4.23
 ARG DSTP_XNET_VERSION=v0.38.0
 ARG K9S_VERSION=v0.50.18
+ARG K9S_OTEL_VERSION=v1.40.0
+ARG K9S_CIRCL_VERSION=v1.6.3
+ARG K9S_GOGIT_VERSION=v5.16.5
 ARG KUBECTL_SRC_VERSION=v1.33.7
 ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
@@ -38,13 +41,18 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod tidy && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "-s -w" ./cmd/dstp && \
+    git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
+    cd /src/k9s && \
+    go mod edit -require=go.opentelemetry.io/otel/sdk@${K9S_OTEL_VERSION} && \
+    go mod edit -require=github.com/cloudflare/circl@${K9S_CIRCL_VERSION} && \
+    go mod edit -require=github.com/go-git/go-git/v5@${K9S_GOGIT_VERSION} && \
+    go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install -ldflags "\
+      go install -ldflags "-s -w \
         -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} \
         -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} \
-        -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}" \
-      github.com/derailed/k9s@${K9S_VERSION} && \
+        -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}" && \
     git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} \
       https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
