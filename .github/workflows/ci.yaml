@@ -68,7 +68,7 @@ jobs:
           version: v0.69.2
 
       - name: Trivy image scan (fail on HIGH+)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         with:
           image-ref: alpinetools:scan
           format: table
@@ -81,7 +81,7 @@ jobs:
       # Trivy SARIF for GitHub Security tab
       # -------------------------
       - name: Trivy SARIF report
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         with:
           image-ref: alpinetools:scan
           format: sarif
