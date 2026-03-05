@@ -15,6 +15,7 @@ ARG K9S_VERSION=v0.50.18
 ARG K9S_OTEL_VERSION=v1.40.0
 ARG K9S_CIRCL_VERSION=v1.6.3
 ARG K9S_GOGIT_VERSION=v5.16.5
+ARG K9S_DOCKERCLI_VERSION=v29.2.0
 ARG KUBECTL_SRC_VERSION=v1.33.7
 ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
@@ -46,6 +47,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -require=go.opentelemetry.io/otel/sdk@${K9S_OTEL_VERSION} && \
     go mod edit -require=github.com/cloudflare/circl@${K9S_CIRCL_VERSION} && \
     go mod edit -require=github.com/go-git/go-git/v5@${K9S_GOGIT_VERSION} && \
+    go mod edit -require=github.com/docker/cli@${K9S_DOCKERCLI_VERSION} && \
     go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
