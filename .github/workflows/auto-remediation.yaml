@@ -190,7 +190,6 @@ jobs:
             security
             automated
             dependencies
-          reviewers: ${{ github.repository_owner }}
 
       - name: Summary
         if: always()
