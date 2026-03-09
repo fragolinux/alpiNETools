@@ -9,7 +9,6 @@ permissions:
   contents: write
   pull-requests: write
   security-events: write
-  workflows: write
 
 jobs:
   scan-and-fix:
