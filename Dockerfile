@@ -87,6 +87,7 @@ RUN apk upgrade --no-cache && \
     expat \
     libcrypto3 \
     libssl3 \
+    zlib \
     && apk add --no-cache \
     bash \
     curl \
