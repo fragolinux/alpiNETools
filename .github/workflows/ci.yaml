@@ -8,7 +8,7 @@ on:
     tags:
       - '*.*.*'
   schedule:
-    - cron: '0 3 * * *'   # nightly security scan
+    - cron: '0 11 * * *'   # daily security scan at 11 AM
 
 permissions:
   contents: write
