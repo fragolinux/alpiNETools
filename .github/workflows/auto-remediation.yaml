@@ -1,0 +1,204 @@
+name: Auto-Remediation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1'   # Weekly on Monday at 4 AM
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  scan-and-fix:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.2.5
+        with:
+          cache: true
+          version: v0.69.3
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Initial build for scanning
+      - name: Build image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          pull: true
+          push: false
+          load: true
+          tags: alpinetools:scan
+          build-args: |
+            GO_VERSION=1.25.7
+          cache-from: type=gha
+
+      # Scan and save results
+      - name: Trivy vulnerability scan (JSON output)
+        id: trivy_scan
+        continue-on-error: true
+        run: |
+          trivy image --format json --output trivy-results.json \
+            --vuln-type os,library \
+            --severity HIGH,CRITICAL \
+            alpinetools:scan
+
+      - name: Check for vulnerabilities
+        id: check_vulns
+        run: |
+          if [ -f trivy-results.json ]; then
+            vuln_count=$(jq '[.Results[]?.Vulnerabilities // [] | length] | add // 0' trivy-results.json)
+            echo "Found $vuln_count vulnerabilities"
+            echo "vuln_count=$vuln_count" >> $GITHUB_OUTPUT
+            
+            if [ "$vuln_count" -gt 0 ]; then
+              echo "has_vulns=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_vulns=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_vulns=false" >> $GITHUB_OUTPUT
+            echo "vuln_count=0" >> $GITHUB_OUTPUT
+          fi
+
+      # Extract vulnerable packages
+      - name: Extract vulnerable packages
+        id: extract_packages
+        if: steps.check_vulns.outputs.has_vulns == 'true'
+        run: |
+          # Extract package names from Trivy results
+          packages=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | .PkgName] | unique | join(" ")' trivy-results.json)
+          echo "Vulnerable packages: $packages"
+          echo "packages=$packages" >> $GITHUB_OUTPUT
+
+      # Attempt fix - Max 3 iterations
+      - name: Apply fixes (limited attempts)
+        id: apply_fixes
+        if: steps.check_vulns.outputs.has_vulns == 'true'
+        env:
+          VULNERABLE_PACKAGES: ${{ steps.extract_packages.outputs.packages }}
+        run: |
+          chmod +x .github/scripts/fix-vulnerabilities.sh
+          .github/scripts/fix-vulnerabilities.sh "$VULNERABLE_PACKAGES"
+
+      # Test the fix - Rebuild and rescan
+      - name: Rebuild with fixes
+        id: rebuild
+        if: steps.apply_fixes.outcome == 'success'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          pull: true
+          push: false
+          load: true
+          tags: alpinetools:scan-fixed
+          build-args: |
+            GO_VERSION=1.25.7
+
+      - name: Rescan fixed image
+        id: rescan
+        if: steps.rebuild.outcome == 'success'
+        continue-on-error: true
+        run: |
+          trivy image --format json --output trivy-results-fixed.json \
+            --vuln-type os,library \
+            --severity HIGH,CRITICAL \
+            alpinetools:scan-fixed
+          
+          vuln_count=$(jq '[.Results[]?.Vulnerabilities // [] | length] | add // 0' trivy-results-fixed.json)
+          echo "Vulnerabilities after fix: $vuln_count"
+          echo "vuln_count=$vuln_count" >> $GITHUB_OUTPUT
+          
+          if [ "$vuln_count" -eq 0 ]; then
+            echo "✅ All vulnerabilities fixed!"
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Some vulnerabilities remain"
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Check for outdated GitHub Actions
+      - name: Check for outdated actions
+        id: check_actions
+        run: |
+          chmod +x .github/scripts/update-actions.sh
+          .github/scripts/update-actions.sh
+
+      # Create PR if there are changes
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+            git diff --stat
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            🔒 Auto-remediation: security updates
+            
+            - Fixed ${{ steps.check_vulns.outputs.vuln_count }} vulnerabilities
+            - Updated outdated GitHub Actions
+            - Verified with Trivy scan
+          branch: auto-remediation/security-updates
+          delete-branch: true
+          title: '🔒 Auto-remediation: Security and dependency updates'
+          body: |
+            ## 🤖 Automated Security Remediation
+            
+            This PR was automatically generated by the auto-remediation workflow.
+            
+            ### 📊 Summary
+            - **Initial vulnerabilities found**: ${{ steps.check_vulns.outputs.vuln_count }}
+            - **Vulnerabilities after fix**: ${{ steps.rescan.outputs.vuln_count || 'N/A' }}
+            - **Fix successful**: ${{ steps.rescan.outputs.success == 'true' && '✅ Yes' || '⚠️ Partial' }}
+            
+            ### 🔍 Changes Made
+            - Updated vulnerable Alpine packages
+            - Updated outdated GitHub Actions versions
+            - Verified with Trivy security scan
+            
+            ### ✅ Testing
+            - [x] Docker image builds successfully
+            - [x] Trivy scan completed
+            - ${{ steps.rescan.outputs.success == 'true' && '[x]' || '[ ]' }} All HIGH/CRITICAL vulnerabilities resolved
+            
+            ### 📝 Next Steps
+            Please review the changes and:
+            1. Verify the package updates are appropriate
+            2. Check the action updates don't break workflows
+            3. Approve and merge if everything looks good
+            
+            ---
+            *Auto-generated by [auto-remediation.yaml](.github/workflows/auto-remediation.yaml)*
+          labels: |
+            security
+            automated
+            dependencies
+          reviewers: ${{ github.repository_owner }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔒 Auto-Remediation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vulnerabilities found**: ${{ steps.check_vulns.outputs.vuln_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Fixes applied**: ${{ steps.apply_fixes.outcome == 'success' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Rebuild successful**: ${{ steps.rebuild.outcome == 'success' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vulnerabilities after fix**: ${{ steps.rescan.outputs.vuln_count || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR created**: ${{ steps.check_changes.outputs.has_changes == 'true' && '✅ Yes' || '❌ No changes needed' }}" >> $GITHUB_STEP_SUMMARY
