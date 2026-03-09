@@ -56,13 +56,15 @@ update_action() {
     echo "  📦 Updating $action_name: $old_version → $new_version"
     
     # Update in all workflow files
-    for workflow in "$WORKFLOW_DIR"/*.{yml,yaml} 2>/dev/null; do
+    shopt -s nullglob
+    for workflow in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
         if [ -f "$workflow" ]; then
             # Use @ to match version tags
             sed -i.bak "s|$action_name@$old_version|$action_name@$new_version|g" "$workflow"
             rm -f "$workflow.bak"
         fi
     done
+    shopt -u nullglob
     
     UPDATED=true
 }
