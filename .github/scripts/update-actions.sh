@@ -97,7 +97,7 @@ for action_path in "${ACTIONS_TO_CHECK[@]}"; do
     shopt -s nullglob
     for workflow in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
         if [ -f "$workflow" ] && grep -q "$action_name@" "$workflow"; then
-            current_version=$(grep "$action_name@" "$workflow" | head -1 | sed "s/.*$action_name@//" | awk '{print $1}')
+            current_version=$(grep "$action_name@" "$workflow" | head -1 | sed "s|.*$action_name@||" | awk '{print $1}')
             break
         fi
     done
