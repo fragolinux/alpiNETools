@@ -1,0 +1,6 @@
+# Trivy scan results
+trivy-results.json
+
+# Build artifacts
+*.log
+*.tmp
