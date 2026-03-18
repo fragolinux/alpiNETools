@@ -10,6 +10,9 @@ permissions:
   pull-requests: write
   security-events: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   scan-and-fix:
     runs-on: ubuntu-latest
@@ -37,7 +40,7 @@ jobs:
           load: true
           tags: alpinetools:scan
           build-args: |
-            GO_VERSION=1.25.7
+            GO_VERSION=1.25.8
           cache-from: type=gha
 
       # Scan and save results
@@ -127,7 +130,7 @@ jobs:
           load: true
           tags: alpinetools:scan-fixed
           build-args: |
-            GO_VERSION=1.25.7
+            GO_VERSION=1.25.8
 
       - name: Rescan fixed image
         id: rescan

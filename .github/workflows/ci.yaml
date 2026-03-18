@@ -15,6 +15,9 @@ permissions:
   packages: write
   security-events: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build-and-scan:
     runs-on: ubuntu-latest
@@ -54,7 +57,7 @@ jobs:
           load: true
           tags: alpinetools:scan
           build-args: |
-            GO_VERSION=1.25.7
+            GO_VERSION=1.25.8
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -107,7 +110,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            GO_VERSION=1.25.7
+            GO_VERSION=1.25.8
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
