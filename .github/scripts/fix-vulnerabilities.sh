@@ -30,6 +30,16 @@ add_packages_to_dockerfile() {
     
     # For each package, check if it's already in the upgrade list
     for pkg in $packages; do
+        if [[ ! "$pkg" =~ ^[a-z0-9][a-z0-9+._-]*$ ]]; then
+            echo "  Skipping invalid package name: $pkg"
+            continue
+        fi
+
+        if [ "$pkg" = "stdlib" ]; then
+            echo "  Skipping non-apk package alias: $pkg"
+            continue
+        fi
+
         if grep -q "apk add --no-cache --upgrade" "$dockerfile" && \
            ! grep -A 10 "apk add --no-cache --upgrade" "$dockerfile" | grep -q "^\s*$pkg\s*\\\\"; then
             
