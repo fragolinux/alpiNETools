@@ -6,6 +6,7 @@ on:
     - cron: '0 5 * * *'   # Daily at 5 AM
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
   security-events: write
@@ -174,6 +175,50 @@ jobs:
             git diff --stat
           fi
 
+      - name: Decide Copilot fallback
+        id: copilot_fallback
+        if: steps.check_vulns.outputs.has_vulns == 'true'
+        run: |
+          should_delegate=false
+          reason=""
+
+          if [ "${{ steps.check_changes.outputs.has_changes }}" = "true" ]; then
+            reason="classic remediation already produced a PR candidate"
+          elif [ -n "${{ steps.extract_packages.outputs.skipped_targets }}" ]; then
+            should_delegate=true
+            reason="non-apk targets require a semantic fix"
+          elif [ "${{ steps.extract_packages.outputs.has_fixable_packages }}" = "false" ]; then
+            should_delegate=true
+            reason="no fixable Alpine packages were found"
+          elif [ "${{ steps.rescan.outputs.success }}" = "false" ]; then
+            should_delegate=true
+            reason="classic remediation did not clear all vulnerabilities"
+          else
+            reason="no Copilot fallback required"
+          fi
+
+          echo "should_delegate=$should_delegate" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch Copilot remediation
+        if: steps.copilot_fallback.outputs.should_delegate == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "GH_PAT secret is required to dispatch Copilot remediation."
+            exit 1
+          fi
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-remediation.yaml/dispatches" \
+            -f ref="${GITHUB_REF_NAME}" \
+            -F inputs[attempt]="1" \
+            -F inputs[base_branch]="${GITHUB_REF_NAME}"
+
       - name: Create Pull Request
         if: steps.check_changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@v8.1.0
@@ -233,3 +278,5 @@ jobs:
           echo "- **Rebuild successful**: ${{ steps.rebuild.outcome == 'success' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Vulnerabilities after fix**: ${{ steps.rescan.outputs.vuln_count || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **PR created**: ${{ steps.check_changes.outputs.has_changes == 'true' && '✅ Yes' || '❌ No changes needed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Copilot fallback**: ${{ steps.copilot_fallback.outputs.should_delegate == 'true' && '✅ Dispatched' || '❌ Not needed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Fallback reason**: ${{ steps.copilot_fallback.outputs.reason || 'None' }}" >> $GITHUB_STEP_SUMMARY

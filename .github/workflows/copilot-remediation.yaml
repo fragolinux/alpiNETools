@@ -1,0 +1,214 @@
+name: Copilot Remediation
+
+on:
+  workflow_dispatch:
+    inputs:
+      attempt:
+        description: Retry attempt number
+        required: false
+        default: "1"
+      base_branch:
+        description: Branch Copilot should target
+        required: false
+        default: "main"
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  MAX_ATTEMPTS: "3"
+  COPILOT_WAIT_MINUTES: "20"
+
+jobs:
+  create-copilot-task:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.base_branch || github.event.repository.default_branch }}
+
+      - name: Resolve run parameters
+        id: params
+        run: |
+          attempt="${{ github.event.inputs.attempt || '1' }}"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            base_branch="${{ github.event.workflow_run.head_branch }}"
+          else
+            base_branch="${{ github.event.inputs.base_branch || github.event.repository.default_branch }}"
+          fi
+          if [ -z "$base_branch" ]; then
+            base_branch="${{ github.event.repository.default_branch }}"
+          fi
+
+          echo "attempt=$attempt" >> "$GITHUB_OUTPUT"
+          echo "base_branch=$base_branch" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.2.5
+        with:
+          cache: true
+          version: v0.69.3
+
+      - uses: docker/setup-buildx-action@v4.0.0
+
+      - name: Build image for scanning
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          pull: true
+          push: false
+          load: true
+          tags: alpinetools:copilot-scan
+          build-args: |
+            GO_VERSION=1.25.8
+          cache-from: type=gha
+
+      - name: Trivy scan
+        id: trivy_scan
+        continue-on-error: true
+        run: |
+          trivy image \
+            --format json \
+            --output trivy-results.json \
+            --vuln-type os,library \
+            --severity HIGH,CRITICAL \
+            alpinetools:copilot-scan
+
+          trivy image \
+            --format table \
+            --output trivy-results.txt \
+            --vuln-type os,library \
+            --severity HIGH,CRITICAL \
+            alpinetools:copilot-scan
+
+      - name: Check scan results
+        id: scan_status
+        run: |
+          if [ ! -f trivy-results.json ]; then
+            echo "has_vulns=false" >> "$GITHUB_OUTPUT"
+            echo "vuln_count=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          vuln_count=$(jq '[.Results[]?.Vulnerabilities // [] | length] | add // 0' trivy-results.json)
+          echo "vuln_count=$vuln_count" >> "$GITHUB_OUTPUT"
+          if [ "$vuln_count" -gt 0 ]; then
+            echo "has_vulns=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_vulns=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Copilot issue body
+        id: issue_body
+        if: steps.scan_status.outputs.has_vulns == 'true'
+        env:
+          REMEDIATION_ATTEMPT: ${{ steps.params.outputs.attempt }}
+          REMEDIATION_BASE_BRANCH: ${{ steps.params.outputs.base_branch }}
+          REMEDIATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REMEDIATION_WORKFLOW_REF: ${{ github.workflow_ref }}
+          REMEDIATION_SOURCE: ${{ github.event_name }}
+        run: |
+          chmod +x .github/scripts/render-copilot-remediation-issue.sh
+          .github/scripts/render-copilot-remediation-issue.sh trivy-results.json trivy-results.txt copilot-issue.md
+          echo "issue_body_file=copilot-issue.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create Copilot issue
+        id: create_issue
+        if: steps.scan_status.outputs.has_vulns == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          ATTEMPT: ${{ steps.params.outputs.attempt }}
+          BASE_BRANCH: ${{ steps.params.outputs.base_branch }}
+          ISSUE_BODY_FILE: ${{ steps.issue_body.outputs.issue_body_file }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "GH_PAT secret is required to assign issues to Copilot."
+            exit 1
+          fi
+
+          issue_title="Copilot remediation attempt ${ATTEMPT}: fix Trivy findings on ${BASE_BRANCH}"
+          jq -n \
+            --arg title "$issue_title" \
+            --rawfile body "$ISSUE_BODY_FILE" \
+            --arg repo "${GITHUB_REPOSITORY}" \
+            --arg base_branch "$BASE_BRANCH" \
+            '{
+              title: $title,
+              body: $body,
+              assignees: ["copilot-swe-agent[bot]"],
+              agent_assignment: {
+                target_repo: $repo,
+                base_branch: $base_branch,
+                custom_instructions: "Fix the reported HIGH/CRITICAL Trivy findings and open exactly one pull request. Prefer the smallest safe patch. Do not try to remediate gobinary findings by editing apk package lists. If vulnerabilities come from Go stdlib, update the Go toolchain and any affected build arguments instead. Keep retries bounded and avoid unrelated refactors.",
+                custom_agent: "",
+                model: ""
+              }
+            }' > issue-payload.json
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${GITHUB_REPOSITORY}/issues" \
+            --input issue-payload.json > issue-response.json
+
+          issue_number=$(jq -r '.number' issue-response.json)
+          issue_url=$(jq -r '.html_url' issue-response.json)
+          echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
+          echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Copilot pull request
+        id: wait_for_pr
+        if: steps.create_issue.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          ISSUE_NUMBER: ${{ steps.create_issue.outputs.issue_number }}
+          WAIT_MINUTES: ${{ env.COPILOT_WAIT_MINUTES }}
+        run: |
+          chmod +x .github/scripts/await-copilot-pr.sh
+          .github/scripts/await-copilot-pr.sh > copilot-pr.env
+          cat copilot-pr.env >> "$GITHUB_OUTPUT"
+
+      - name: Retry by redispatching workflow
+        if: |
+          steps.scan_status.outputs.has_vulns == 'true' &&
+          steps.wait_for_pr.outputs.pr_url == '' &&
+          fromJSON(steps.params.outputs.attempt) < fromJSON(env.MAX_ATTEMPTS)
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          NEXT_ATTEMPT: ${{ fromJSON(steps.params.outputs.attempt) + 1 }}
+          BASE_BRANCH: ${{ steps.params.outputs.base_branch }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-remediation.yaml/dispatches" \
+            -f ref="${BASE_BRANCH}" \
+            -F inputs[attempt]="${NEXT_ATTEMPT}" \
+            -F inputs[base_branch]="${BASE_BRANCH}"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Copilot Remediation Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Attempt: ${{ steps.params.outputs.attempt }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Base branch: ${{ steps.params.outputs.base_branch }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Vulnerabilities found: ${{ steps.scan_status.outputs.vuln_count || '0' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Copilot issue: ${{ steps.create_issue.outputs.issue_url || 'Not created' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Copilot PR: ${{ steps.wait_for_pr.outputs.pr_url || 'Not detected' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Max attempts: ${{ env.MAX_ATTEMPTS }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.scan_status.outputs.has_vulns }}" = "false" ]; then
+            echo "- Outcome: no HIGH/CRITICAL findings detected" >> "$GITHUB_STEP_SUMMARY"
+          elif [ -n "${{ steps.wait_for_pr.outputs.pr_url }}" ]; then
+            echo "- Outcome: Copilot opened a PR" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.params.outputs.attempt }}" = "${{ env.MAX_ATTEMPTS }}" ]; then
+            echo "- Outcome: max attempts reached without a PR" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Outcome: retry dispatched" >> "$GITHUB_STEP_SUMMARY"
+          fi
