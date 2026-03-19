@@ -180,16 +180,17 @@ jobs:
           fromJSON(steps.params.outputs.attempt) < fromJSON(env.MAX_ATTEMPTS)
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
-          NEXT_ATTEMPT: ${{ fromJSON(steps.params.outputs.attempt) + 1 }}
+          CURRENT_ATTEMPT: ${{ steps.params.outputs.attempt }}
           BASE_BRANCH: ${{ steps.params.outputs.base_branch }}
         run: |
+          next_attempt=$((CURRENT_ATTEMPT + 1))
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-remediation.yaml/dispatches" \
             -f ref="${BASE_BRANCH}" \
-            -F inputs[attempt]="${NEXT_ATTEMPT}" \
+            -F inputs[attempt]="${next_attempt}" \
             -F inputs[base_branch]="${BASE_BRANCH}"
 
       - name: Summary
