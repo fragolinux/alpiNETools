@@ -89,6 +89,8 @@ RUN apk upgrade --no-cache && \
     expat \
     libcrypto3 \
     libssl3 \
+    bind-tools \
+    bind-libs \
     libexpat \
     zlib \
     && apk add --no-cache \
