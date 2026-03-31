@@ -203,10 +203,10 @@ jobs:
       - name: Dispatch Copilot remediation
         if: steps.copilot_fallback.outputs.should_delegate == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "${GH_TOKEN}" ]; then
-            echo "GH_PAT secret is required to dispatch Copilot remediation."
+            echo "GITHUB_TOKEN is required to dispatch Copilot remediation."
             exit 1
           fi
 

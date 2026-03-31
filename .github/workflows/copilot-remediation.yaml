@@ -15,6 +15,7 @@ on:
 permissions:
   actions: write
   contents: read
+  issues: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -179,7 +180,7 @@ jobs:
           steps.wait_for_pr.outputs.pr_url == '' &&
           fromJSON(steps.params.outputs.attempt) < fromJSON(env.MAX_ATTEMPTS)
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ github.token }}
           CURRENT_ATTEMPT: ${{ steps.params.outputs.attempt }}
           BASE_BRANCH: ${{ steps.params.outputs.base_branch }}
         run: |

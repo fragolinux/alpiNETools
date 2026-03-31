@@ -78,6 +78,7 @@ jobs:
           vuln-type: os,library
           severity: HIGH,CRITICAL
           exit-code: 1
+          cache: false
           skip-setup-trivy: true
 
       # -------------------------
@@ -91,6 +92,7 @@ jobs:
           output: trivy-results.sarif
           vuln-type: os,library
           severity: HIGH,CRITICAL
+          cache: false
           skip-setup-trivy: true
 
       - name: Upload SARIF to GitHub Security
