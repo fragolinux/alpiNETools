@@ -4,3 +4,6 @@ trivy-results.json
 # Build artifacts
 *.log
 *.tmp
+
+# Local Codex marker
+.codex
