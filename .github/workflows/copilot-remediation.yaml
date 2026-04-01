@@ -191,8 +191,8 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-remediation.yaml/dispatches" \
             -f ref="${BASE_BRANCH}" \
-            -F inputs[attempt]="${next_attempt}" \
-            -F inputs[base_branch]="${BASE_BRANCH}"
+            -f inputs[attempt]="${next_attempt}" \
+            -f inputs[base_branch]="${BASE_BRANCH}"
 
       - name: Summary
         if: always()

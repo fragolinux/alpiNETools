@@ -216,8 +216,8 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-remediation.yaml/dispatches" \
             -f ref="${GITHUB_REF_NAME}" \
-            -F inputs[attempt]="1" \
-            -F inputs[base_branch]="${GITHUB_REF_NAME}"
+            -f inputs[attempt]="1" \
+            -f inputs[base_branch]="${GITHUB_REF_NAME}"
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.has_changes == 'true'
