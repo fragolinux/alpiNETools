@@ -13,10 +13,11 @@ ARG DSTP_VERSION=0.4.23
 ARG DSTP_XNET_VERSION=v0.38.0
 ARG K9S_VERSION=v0.50.18
 ARG K9S_GRPC_VERSION=v1.79.3
-ARG K9S_OTEL_VERSION=v1.40.0
+ARG K9S_OTEL_VERSION=v1.43.0
 ARG K9S_CIRCL_VERSION=v1.6.3
 ARG K9S_GOGIT_VERSION=v5.16.5
-ARG K9S_DOCKERCLI_VERSION=v29.2.0+incompatible
+ARG K9S_GOJOSE_VERSION=v4.1.4
+ARG K9S_DOCKERCLI_VERSION=v29.3.1
 ARG KUBECTL_SRC_VERSION=v1.33.7
 ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
@@ -49,6 +50,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -require=go.opentelemetry.io/otel/sdk@${K9S_OTEL_VERSION} && \
     go mod edit -require=github.com/cloudflare/circl@${K9S_CIRCL_VERSION} && \
     go mod edit -require=github.com/go-git/go-git/v5@${K9S_GOGIT_VERSION} && \
+    go mod edit -require=github.com/go-jose/go-jose/v4@${K9S_GOJOSE_VERSION} && \
     go mod edit -require=github.com/docker/cli@${K9S_DOCKERCLI_VERSION} && \
     go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
@@ -87,8 +89,8 @@ ARG TARGETARCH
 RUN apk upgrade --no-cache && \
     apk add --no-cache --upgrade \
     expat \
-    libcrypto3 \
-    libssl3 \
+    libcrypto3=3.5.6-r0 \
+    libssl3=3.5.6-r0 \
     bind-tools \
     bind-libs \
     libexpat \
@@ -114,7 +116,7 @@ RUN apk upgrade --no-cache && \
     tar \
     gzip \
     bzip2 \
-    openssl \
+    openssl=3.5.6-r0 \
     file \
     nmap \
     nano \
