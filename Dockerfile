@@ -18,7 +18,6 @@ ARG K9S_CIRCL_VERSION=v1.6.3
 ARG K9S_GOGIT_VERSION=v5.16.5
 ARG K9S_GOJOSE_VERSION=v4.1.4
 ARG K9S_DOCKERCLI_VERSION=v29.2.0+incompatible
-ARG K9S_DOCKER_VERSION=v29.3.1+incompatible
 ARG KUBECTL_SRC_VERSION=v1.33.7
 ARG YQ_VERSION=v4.50.1
 ARG TARGETARCH
@@ -53,7 +52,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -require=github.com/go-git/go-git/v5@${K9S_GOGIT_VERSION} && \
     go mod edit -require=github.com/go-jose/go-jose/v4@${K9S_GOJOSE_VERSION} && \
     go mod edit -require=github.com/docker/cli@${K9S_DOCKERCLI_VERSION} && \
-    go mod edit -require=github.com/docker/docker@${K9S_DOCKER_VERSION} && \
     go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
