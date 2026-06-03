@@ -20,7 +20,8 @@ ARG K9S_GOBILLY_VERSION=v5.9.0
 ARG K9S_GOGIT_VERSION=v5.19.0
 ARG K9S_GOGETTER_VERSION=v1.8.6
 ARG K9S_SPDYSTREAM_VERSION=v0.5.1
-ARG K9S_DOCKERCLI_VERSION=v29.2.0+incompatible
+ARG K9S_DOCKER_VERSION=v28.5.2+incompatible
+ARG K9S_GOJOSE_VERSION=v4.1.4
 ARG KUBECTL_SRC_VERSION=v1.33.12
 ARG YQ_VERSION=v4.53.2
 ARG TARGETARCH
@@ -56,7 +57,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -require=github.com/go-git/go-git/v5@${K9S_GOGIT_VERSION} && \
     go mod edit -require=github.com/hashicorp/go-getter@${K9S_GOGETTER_VERSION} && \
     go mod edit -require=github.com/moby/spdystream@${K9S_SPDYSTREAM_VERSION} && \
-    go mod edit -require=github.com/docker/cli@${K9S_DOCKERCLI_VERSION} && \
+    go mod edit -require=github.com/docker/docker@${K9S_DOCKER_VERSION} && \
+    go mod edit -require=github.com/go-jose/go-jose/v4@${K9S_GOJOSE_VERSION} && \
     go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
@@ -96,8 +98,13 @@ RUN apk upgrade --no-cache && \
     expat \
     libcrypto3=3.5.6-r0 \
     libssl3=3.5.6-r0 \
-    bind-tools \
-    bind-libs \
+  musl=1.2.5-r23 \
+  bind-tools=9.20.23-r0 \
+  bind-libs=9.20.23-r0 \
+  libcap=2.78-r0 \
+  libssh2=1.11.1-r2 \
+  libxml2=2.13.9-r1 \
+  nghttp2-libs=1.69.0-r0 \
     libexpat \
     zlib \
     && apk add --no-cache \
@@ -106,7 +113,6 @@ RUN apk upgrade --no-cache && \
     ca-certificates \
     iperf3 \
     tcpdump \
-    bind-tools \
     net-tools \
     iproute2 \
     iputils \
