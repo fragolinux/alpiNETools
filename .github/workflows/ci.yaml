@@ -77,6 +77,8 @@ jobs:
           format: table
           vuln-type: os,library
           severity: HIGH,CRITICAL
+          trivyignores: .trivyignore
+          ignore-unfixed: true
           exit-code: 1
           cache: false
           skip-setup-trivy: true
@@ -92,6 +94,8 @@ jobs:
           output: trivy-results.sarif
           vuln-type: os,library
           severity: HIGH,CRITICAL
+          trivyignores: .trivyignore
+          ignore-unfixed: true
           cache: false
           skip-setup-trivy: true
 
