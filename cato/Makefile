@@ -186,6 +186,19 @@ release:
 		exit 1; \
 	fi
 	@set -e; \
+	current_branch=$$(git branch --show-current); \
+	if [ -z "$$current_branch" ]; then \
+		echo "ERROR: release must run on a branch."; \
+		exit 1; \
+	fi; \
+	git fetch --tags origin "$$current_branch"; \
+	upstream_ref="origin/$$current_branch"; \
+	if git show-ref --verify --quiet "refs/remotes/$$upstream_ref"; then \
+		if ! git merge-base --is-ancestor "$$upstream_ref" HEAD; then \
+			echo "Rebasing $$current_branch onto $$upstream_ref"; \
+			git rebase "$$upstream_ref"; \
+		fi; \
+	fi; \
 	last_tag=$$(git tag --list | sort -V | tail -n1); \
 	if [ -z "$$last_tag" ]; then last_tag="0.0.0"; fi; \
 	base_tag="$${last_tag#v}"; \
@@ -195,6 +208,6 @@ release:
 	patch=$$((patch+1)); \
 	new_tag="$$major.$$minor.$$patch"; \
 	echo "Tagging $$new_tag (previous: $$last_tag)"; \
-	git push origin; \
+	git push origin "$$current_branch"; \
 	git tag "$$new_tag"; \
 	git push origin "$$new_tag";

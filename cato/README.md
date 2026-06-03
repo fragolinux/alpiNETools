@@ -53,7 +53,7 @@ Targets:
 - `make test` runs the CA checks and (re)builds the bundle if needed.
 - `make build` performs the local Docker build using the CA bundle secret.
 - `make sec` runs Trivy on the locally built image (fails on HIGH/CRITICAL).
-- `make release` bumps patch tag and pushes branch + tag.
+- `make release` fetches the latest branch state, rebases if needed, then bumps and pushes the patch tag.
 
 Environment overrides:
 ```bash
