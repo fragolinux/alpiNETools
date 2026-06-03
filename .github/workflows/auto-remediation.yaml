@@ -27,13 +27,13 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           cache: false
-          version: v0.69.3
+          version: v0.70.0
 
-      - uses: docker/setup-buildx-action@v4.0.0
+      - uses: docker/setup-buildx-action@v4.1.0
 
       # Initial build for scanning
       - name: Build image for scanning
-        uses: docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@v7.2.0
         with:
           context: .
           pull: true
@@ -41,7 +41,7 @@ jobs:
           load: true
           tags: alpinetools:scan
           build-args: |
-            GO_VERSION=1.25.8
+            GO_VERSION=1.25.10
           cache-from: type=gha
 
       # Scan and save results
@@ -123,7 +123,7 @@ jobs:
       - name: Rebuild with fixes
         id: rebuild
         if: steps.apply_fixes.outcome == 'success' && steps.extract_packages.outputs.has_fixable_packages == 'true'
-        uses: docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@v7.2.0
         with:
           context: .
           pull: true
@@ -131,7 +131,7 @@ jobs:
           load: true
           tags: alpinetools:scan-fixed
           build-args: |
-            GO_VERSION=1.25.8
+            GO_VERSION=1.25.10
 
       - name: Rescan fixed image
         id: rescan
