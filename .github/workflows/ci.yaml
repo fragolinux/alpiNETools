@@ -57,7 +57,7 @@ jobs:
           load: true
           tags: alpinetools:scan
           build-args: |
-            GO_VERSION=1.25.10
+            GO_VERSION=1.25.11
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -68,7 +68,7 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           cache: false
-          version: v0.70.0
+          version: v0.71.0
 
       - name: Trivy image scan (fail on HIGH+)
         uses: aquasecurity/trivy-action@v0.36.0
@@ -116,7 +116,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            GO_VERSION=1.25.10
+            GO_VERSION=1.25.11
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
