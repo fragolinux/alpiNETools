@@ -98,8 +98,8 @@ ARG TARGETARCH
 RUN apk upgrade --no-cache && \
     apk add --no-cache --upgrade \
     expat \
-    libcrypto3=3.5.6-r0 \
-    libssl3=3.5.6-r0 \
+  libcrypto3=3.5.7-r0 \
+  libssl3=3.5.7-r0 \
   musl=1.2.5-r23 \
   bind-tools=9.20.23-r0 \
   bind-libs=9.20.23-r0 \
@@ -129,7 +129,7 @@ RUN apk upgrade --no-cache && \
     tar \
     gzip \
     bzip2 \
-    openssl=3.5.6-r0 \
+    openssl=3.5.7-r0 \
     file \
     nmap \
     nano \
