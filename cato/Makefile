@@ -7,9 +7,9 @@ GO_BUILDER_IMAGE ?= dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960
 FINAL_BASE_IMAGE ?= dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
 GO_VERSION ?= 1.25.11
 DSTP_VERSION ?= 0.4.23
-K9S_VERSION ?= v0.50.18
-KUBECTL_SRC_VERSION ?= v1.33.12
-YQ_VERSION ?= v4.53.2
+K9S_VERSION ?= v0.51.0
+KUBECTL_SRC_VERSION ?= v1.34.8
+YQ_VERSION ?= v4.53.3
 ARCH ?= $(shell uname -m)
 PLATFORM ?= $(if $(filter arm64 aarch64,$(ARCH)),linux/arm64,linux/amd64)
 
@@ -85,26 +85,68 @@ sec:
 			missing=1; \
 		fi; \
 	done; \
-	if ! docker scout version >/dev/null 2>&1; then \
-		echo "ERROR: docker scout not available (install Docker Scout CLI or enable Docker Desktop Scout)."; \
-		missing=1; \
-	fi; \
 	if [ $$missing -ne 0 ]; then exit 1; fi
 	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \
 		echo "ERROR: image $(IMAGE) not found. Run 'make build' first."; \
 		exit 1; \
 	fi
-	@secfile="../SECURITY.txt"; \
+	@gate_fail=0; secfile="../SECURITY.txt"; \
+	trivyignore_file="../.trivyignore"; \
+	trivy_raw_json="$$(mktemp)"; \
 	: > $$secfile; \
+	trivy image $(IMAGE) --pkg-types os,library --severity HIGH,CRITICAL --ignore-unfixed --format json > "$$trivy_raw_json"; \
+	if [ -f "$$trivyignore_file" ]; then \
+	  ignore_ids_file="$$(mktemp)"; active_ids_file="$$(mktemp)"; updated_ignore_file="$$(mktemp)"; \
+	  grep -E '^[A-Z]+-[0-9-]+$$' "$$trivyignore_file" > "$$ignore_ids_file" || true; \
+	  jq -r '.Results[]?.Vulnerabilities[]?.VulnerabilityID' "$$trivy_raw_json" | sort -u > "$$active_ids_file"; \
+	  cp "$$trivyignore_file" "$$updated_ignore_file"; \
+	  stale_found=0; \
+	  if [ -s "$$ignore_ids_file" ]; then \
+	    while IFS= read -r ignore_id; do \
+	      if ! grep -qxF "$$ignore_id" "$$active_ids_file"; then \
+	        stale_found=1; \
+	        echo "INFO: removing stale Trivy ignore $$ignore_id"; \
+	        grep -vxF "$$ignore_id" "$$updated_ignore_file" > "$$updated_ignore_file.tmp" || true; \
+	        mv "$$updated_ignore_file.tmp" "$$updated_ignore_file"; \
+	      fi; \
+	    done < "$$ignore_ids_file"; \
+	  fi; \
+	  if [ $$stale_found -ne 0 ]; then \
+	    if ! grep -Eq '^[A-Z]+-[0-9-]+$$' "$$updated_ignore_file"; then \
+	      printf '%s\n' '# No active Trivy ignores.' > "$$updated_ignore_file"; \
+	    fi; \
+	    mv "$$updated_ignore_file" "$$trivyignore_file"; \
+	  fi; \
+	  rm -f "$$ignore_ids_file" "$$active_ids_file" "$$updated_ignore_file" "$$updated_ignore_file.tmp"; \
+	fi; \
 	{ echo "== TRIVY ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
-	  trivy image $(IMAGE) --pkg-types os,library --format table; \
+	  trivy_cmd="trivy image $(IMAGE) --pkg-types os,library --severity HIGH,CRITICAL --ignore-unfixed --format table --exit-code 1"; \
+	  if [ -f "$$trivyignore_file" ]; then \
+	    trivy_cmd="$$trivy_cmd --ignorefile $$trivyignore_file"; \
+	  fi; \
+	  sh -c "$$trivy_cmd" || gate_fail=1; \
 	  echo; } | tee -a $$secfile; \
-	{ echo "== DOCKER SCOUT ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
-	  docker scout cves $(IMAGE) --format only-packages --only-vuln-packages; \
-	  echo; } | tee -a $$secfile; \
+	if docker scout version >/dev/null 2>&1; then \
+	  { echo "== DOCKER SCOUT ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
+	    if ! docker scout cves $(IMAGE) --format only-packages --only-vuln-packages; then \
+	      echo "WARNING: docker scout command failed (for example missing login). Continuing with Trivy + Grype."; \
+	    fi; \
+	    echo; } | tee -a $$secfile; \
+	else \
+	  { echo "== DOCKER SCOUT ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
+	    echo "WARNING: docker scout not available. Continuing with Trivy + Grype only."; \
+	    echo "SKIPPED: docker scout not available on this host."; \
+	    echo; } | tee -a $$secfile; \
+	fi; \
 	{ echo "== GRYPE ($$(date -u +%Y-%m-%dT%H:%M:%SZ)) =="; \
 	  grype $(IMAGE); \
-	  echo; } | tee -a $$secfile
+	  echo; } | tee -a $$secfile; \
+	if [ $$gate_fail -ne 0 ]; then \
+	  echo "ERROR: Trivy found HIGH/CRITICAL vulnerabilities (CI-equivalent gate)."; \
+	  rm -f "$$trivy_raw_json"; \
+	  exit 1; \
+	fi; \
+	rm -f "$$trivy_raw_json"
 
 run-local:
 	@if ! docker image inspect $(IMAGE) >/dev/null 2>&1; then \

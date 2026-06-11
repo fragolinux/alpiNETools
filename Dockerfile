@@ -11,20 +11,9 @@ FROM ${GO_BUILDER_IMAGE} AS gobuilder
 ARG GO_VERSION
 ARG DSTP_VERSION=0.4.23
 ARG DSTP_XNET_VERSION=v0.38.0
-ARG K9S_VERSION=v0.50.18
-ARG K9S_GRPC_VERSION=v1.79.3
-ARG K9S_OTEL_VERSION=v1.43.0
-ARG K9S_CIRCL_VERSION=v1.6.3
-ARG K9S_CONTAINERD_VERSION=v1.7.32
-ARG K9S_GOBILLY_VERSION=v5.9.0
-ARG K9S_GOGIT_VERSION=v5.19.0
-ARG K9S_GOGETTER_VERSION=v1.8.6
-ARG K9S_SPDYSTREAM_VERSION=v0.5.1
-ARG K9S_DOCKER_VERSION=v28.5.2+incompatible
-ARG K9S_DOCKERCLI_VERSION=v29.2.0+incompatible
-ARG K9S_GOJOSE_VERSION=v4.1.4
-ARG KUBECTL_SRC_VERSION=v1.33.12
-ARG YQ_VERSION=v4.53.2
+ARG K9S_VERSION=v0.51.0
+ARG KUBECTL_SRC_VERSION=v1.34.8
+ARG YQ_VERSION=v4.53.3
 ARG TARGETARCH
 
 RUN apk add --no-cache --upgrade git ca-certificates tar && \
@@ -50,18 +39,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       go install -ldflags "-s -w" ./cmd/dstp && \
     git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
     cd /src/k9s && \
-    go mod edit -require=github.com/containerd/containerd@${K9S_CONTAINERD_VERSION} && \
-    go mod edit -require=google.golang.org/grpc@${K9S_GRPC_VERSION} && \
-    go mod edit -require=go.opentelemetry.io/otel/sdk@${K9S_OTEL_VERSION} && \
-    go mod edit -require=github.com/cloudflare/circl@${K9S_CIRCL_VERSION} && \
-    go mod edit -require=github.com/go-git/go-billy/v5@${K9S_GOBILLY_VERSION} && \
-    go mod edit -require=github.com/go-git/go-git/v5@${K9S_GOGIT_VERSION} && \
-    go mod edit -require=github.com/hashicorp/go-getter@${K9S_GOGETTER_VERSION} && \
-    go mod edit -require=github.com/moby/spdystream@${K9S_SPDYSTREAM_VERSION} && \
-    go mod edit -require=github.com/docker/docker@${K9S_DOCKER_VERSION} && \
-    go mod edit -require=github.com/docker/cli@${K9S_DOCKERCLI_VERSION} && \
-    go mod edit -require=github.com/go-jose/go-jose/v4@${K9S_GOJOSE_VERSION} && \
-    go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "-s -w \

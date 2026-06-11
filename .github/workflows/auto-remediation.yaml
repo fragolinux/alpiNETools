@@ -27,7 +27,7 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           cache: false
-          version: v0.70.0
+          version: v0.71.0
 
       - uses: docker/setup-buildx-action@v4.1.0
 

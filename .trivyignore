@@ -1,5 +1,1 @@
-# Temporary suppression for k9s gobinary dependency.
-# Trivy reports github.com/docker/docker CVE-2026-34040 as fixed in 29.3.1,
-# but that revision is not currently available as a Go module release.
-# Remove this once an installable fixed module version is available.
-CVE-2026-34040
+# No active Trivy ignores.
