@@ -1,4 +1,4 @@
-== TRIVY (2026-06-11T20:56:48Z) ==
+== TRIVY (2026-06-20T12:48:37Z) ==
 
 Report Summary
 
@@ -20,87 +20,71 @@ Legend:
 - '0': Clean (no security findings detected)
 
 
-== DOCKER SCOUT (2026-06-11T20:56:48Z) ==
+== DOCKER SCOUT (2026-06-20T12:48:37Z) ==
 WARNING: docker scout command failed (for example missing login). Continuing with Trivy + Grype.
 
-== GRYPE (2026-06-11T20:56:58Z) ==
-NAME                                     INSTALLED   FIXED IN  TYPE        VULNERABILITY        SEVERITY    EPSS           RISK   
-k8s.io/kubernetes                        v1.34.8               go-module   GO-2025-3521         Medium      0.3% (51st)    0.2    
-python3                                  3.12.13-r0            apk         CVE-2026-6100        Critical    0.1% (33rd)    0.1    
-jaraco-context                           5.3.0       6.1.0     python      GHSA-58pv-8j8x-9vj2  High        0.1% (27th)    < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-7210        Critical    < 0.1% (25th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-4224        High        < 0.1% (25th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5006         Critical    < 0.1% (21st)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-3298        High        < 0.1% (22nd)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2025-15366       Medium      0.1% (27th)    < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2025-15367       Medium      0.1% (27th)    < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-7168        Medium      0.1% (27th)    < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5023         Critical    < 0.1% (16th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5017         Critical    < 0.1% (17th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5020         Critical    < 0.1% (17th)  < 0.1  
-golang.org/x/net                         v0.38.0     0.55.0    go-module   GO-2026-5026         Critical    < 0.1% (16th)  < 0.1  
-golang.org/x/net                         v0.53.0     0.55.0    go-module   GO-2026-5026         Critical    < 0.1% (16th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5013         High        < 0.1% (17th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-3644        High        < 0.1% (17th)  < 0.1  
-busybox                                  1.37.0-r30            apk         CVE-2025-60876       Medium      < 0.1% (21st)  < 0.1  
-busybox-binsh                            1.37.0-r30            apk         CVE-2025-60876       Medium      < 0.1% (21st)  < 0.1  
-busybox-extras                           1.37.0-r30            apk         CVE-2025-60876       Medium      < 0.1% (21st)  < 0.1  
-ssl_client                               1.37.0-r30            apk         CVE-2025-60876       Medium      < 0.1% (21st)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5005         Critical    < 0.1% (13th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-6019        Medium      < 0.1% (24th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-3276        Medium      < 0.1% (20th)  < 0.1  
-golang.org/x/net                         v0.38.0     0.55.0    go-module   GO-2026-5028         Medium      < 0.1% (19th)  < 0.1  
-golang.org/x/net                         v0.53.0     0.55.0    go-module   GO-2026-5028         Medium      < 0.1% (19th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5021         Critical    < 0.1% (11th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-9669        High        < 0.1% (13th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2025-13462       Critical    < 0.1% (12th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5019         Critical    < 0.1% (10th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-8328        Medium      < 0.1% (16th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5018         High        < 0.1% (10th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5033         Medium      < 0.1% (16th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2025-12781       Medium      < 0.1% (15th)  < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-7774        Medium      < 0.1% (11th)  < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-5545        Medium      < 0.1% (11th)  < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5014         Medium      < 0.1% (10th)  < 0.1  
-golang.org/x/net                         v0.38.0     0.55.0    go-module   GO-2026-5025         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.53.0     0.55.0    go-module   GO-2026-5025         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.38.0     0.55.0    go-module   GO-2026-5027         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.38.0     0.55.0    go-module   GO-2026-5029         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.38.0     0.55.0    go-module   GO-2026-5030         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.53.0     0.55.0    go-module   GO-2026-5027         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.53.0     0.55.0    go-module   GO-2026-5029         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.53.0     0.55.0    go-module   GO-2026-5030         Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/net                         v0.38.0     0.45.0    go-module   GO-2026-4440         Medium      < 0.1% (9th)   < 0.1  
-tar                                      1.35-r4               apk         CVE-2026-5704        Medium      < 0.1% (9th)   < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-6253        Medium      < 0.1% (8th)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-3446        Medium      < 0.1% (8th)   < 0.1  
-pip                                      25.1.1      25.3      python      GHSA-4xh5-x5gv-qwph  Medium      < 0.1% (8th)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-4786        High        < 0.1% (6th)   < 0.1  
-golang.org/x/net                         v0.38.0     0.53.0    go-module   GO-2026-4918         High        < 0.1% (5th)   < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5015         Medium      < 0.1% (8th)   < 0.1  
-urllib3                                  2.6.3       2.7.0     python      GHSA-mf9v-mfxr-j63j  High        < 0.1% (5th)   < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-5773        High        < 0.1% (5th)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2025-13837       Medium      < 0.1% (9th)   < 0.1  
-golang.org/x/crypto                      v0.50.0     0.52.0    go-module   GO-2026-5016         Medium      < 0.1% (6th)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-1502        Medium      < 0.1% (6th)   < 0.1  
-wheel                                    0.45.1      0.46.2    python      GHSA-8rrh-rw8j-w5fx  High        < 0.1% (3rd)   < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-6429        Medium      < 0.1% (6th)   < 0.1  
-golang.org/x/net                         v0.38.0     0.45.0    go-module   GO-2026-4441         Medium      < 0.1% (5th)   < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-6276        High        < 0.1% (2nd)   < 0.1  
-urllib3                                  2.6.3       2.7.0     python      GHSA-qccp-gfcp-xxvc  High        < 0.1% (2nd)   < 0.1  
-pip                                      25.1.1      26.1      python      GHSA-jp4c-xjxw-mgf9  Medium      < 0.1% (4th)   < 0.1  
-pip                                      25.1.1      26.1      python      GHSA-58qw-9mgm-455v  Medium      < 0.1% (5th)   < 0.1  
-idna                                     3.11        3.15      python      GHSA-65pc-fj4g-8rjx  Medium      < 0.1% (2nd)   < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-4873        Medium      < 0.1% (2nd)   < 0.1  
-pip                                      25.1.1      26.0      python      GHSA-6vgw-5pg2-w6jp  Low         < 0.1% (9th)   < 0.1  
-curl                                     8.19.0-r0             apk         CVE-2026-7009        Medium      < 0.1% (1st)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-4519        Low         < 0.1% (2nd)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-2297        Medium      < 0.1% (1st)   < 0.1  
-golang.org/x/sys                         v0.31.0     0.44.0    go-module   GO-2026-5024         Low         < 0.1% (2nd)   < 0.1  
-golang.org/x/sys                         v0.43.0     0.44.0    go-module   GO-2026-5024         Low         < 0.1% (2nd)   < 0.1  
-k8s.io/kubernetes                        v1.34.8               go-module   GO-2025-3547         Low         < 0.1% (0th)   < 0.1  
-pygments                                 2.19.2      2.20.0    python      GHSA-5239-wwwm-4pmq  Low         < 0.1% (0th)   < 0.1  
-python3                                  3.12.13-r0            apk         CVE-2026-3479        Negligible  < 0.1% (3rd)   < 0.1  
-github.com/aws/aws-sdk-go-v2/service/s3  v1.97.1     1.97.3    go-module   GHSA-xmrv-pmrh-hhx2  Medium      N/A            N/A    
-rand                                     0.9.2       0.9.3     rust-crate  GHSA-cq8v-f236-94qc  Low         N/A            N/A
+== GRYPE (2026-06-20T12:48:46Z) ==
+NAME                                     INSTALLED             FIXED IN             TYPE        VULNERABILITY        SEVERITY    EPSS         RISK   
+python3                                  3.12.13-r0                                 apk         CVE-2026-7210        High        0.8% (51st)  0.6    
+python3                                  3.12.13-r0                                 apk         CVE-2026-6100        Critical    0.5% (39th)  0.5    
+python3                                  3.12.13-r0                                 apk         CVE-2026-4224        High        0.6% (45th)  0.4    
+jaraco-context                           5.3.0                 6.1.0                python      GHSA-58pv-8j8x-9vj2  High        0.5% (40th)  0.4    
+golang.org/x/net                         v0.38.0               0.53.0               go-module   GO-2026-4918         High        0.6% (42nd)  0.4    
+python3                                  3.12.13-r0                                 apk         CVE-2026-7774        Medium      0.6% (44th)  0.4    
+golang.org/x/net                         v0.38.0               0.55.0               go-module   GO-2026-5026         Critical    0.4% (27th)  0.3    
+github.com/docker/cli                    v29.3.0+incompatible  29.2.0+incompatible  go-module   GO-2026-4610         High        0.4% (34th)  0.3    
+curl                                     8.19.0-r0                                  apk         CVE-2026-5773        High        0.4% (35th)  0.3    
+python3                                  3.12.13-r0                                 apk         CVE-2026-3298        High        0.4% (29th)  0.3    
+k8s.io/kubernetes                        v1.34.8                                    go-module   GO-2025-3521         Medium      0.5% (39th)  0.3    
+python3                                  3.12.13-r0                                 apk         CVE-2026-9669        High        0.4% (29th)  0.3    
+urllib3                                  2.6.3                 2.7.0                python      GHSA-mf9v-mfxr-j63j  High        0.4% (28th)  0.3    
+curl                                     8.19.0-r0                                  apk         CVE-2026-6253        Medium      0.5% (39th)  0.3    
+python3                                  3.12.13-r0                                 apk         CVE-2026-3644        High        0.4% (30th)  0.3    
+python3                                  3.12.13-r0                                 apk         CVE-2025-12781       Medium      0.5% (39th)  0.3    
+python3                                  3.12.13-r0                                 apk         CVE-2026-3276        Medium      0.5% (37th)  0.3    
+idna                                     3.11                  3.15                 python      GHSA-65pc-fj4g-8rjx  Medium      0.4% (35th)  0.3    
+golang.org/x/net                         v0.38.0               0.45.0               go-module   GO-2026-4440         Medium      0.5% (38th)  0.3    
+python3                                  3.12.13-r0                                 apk         CVE-2026-1502        Medium      0.5% (37th)  0.3    
+golang.org/x/net                         v0.38.0               0.45.0               go-module   GO-2026-4441         Medium      0.5% (37th)  0.2    
+pip                                      25.1.1                25.3                 python      GHSA-4xh5-x5gv-qwph  Medium      0.4% (35th)  0.2    
+tar                                      1.35-r4                                    apk         CVE-2026-5704        Medium      0.4% (34th)  0.2    
+python3                                  3.12.13-r0                                 apk         CVE-2026-8328        Medium      0.4% (31st)  0.2    
+curl                                     8.19.0-r0                                  apk         CVE-2026-5545        Medium      0.4% (28th)  0.2    
+wheel                                    0.45.1                0.46.2               python      GHSA-8rrh-rw8j-w5fx  High        0.3% (19th)  0.2    
+curl                                     8.19.0-r0                                  apk         CVE-2026-7168        Medium      0.4% (31st)  0.2    
+curl                                     8.19.0-r0                                  apk         CVE-2026-6276        High        0.3% (17th)  0.2    
+golang.org/x/net                         v0.38.0               0.55.0               go-module   GO-2026-5028         Medium      0.3% (25th)  0.2    
+curl                                     8.19.0-r0                                  apk         CVE-2026-6429        Medium      0.4% (28th)  0.2    
+urllib3                                  2.6.3                 2.7.0                python      GHSA-qccp-gfcp-xxvc  High        0.3% (17th)  0.2    
+python3                                  3.12.13-r0                                 apk         CVE-2025-15366       Medium      0.3% (23rd)  0.2    
+python3                                  3.12.13-r0                                 apk         CVE-2025-15367       Medium      0.3% (23rd)  0.2    
+python3                                  3.12.13-r0                                 apk         CVE-2026-4786        High        0.2% (10th)  0.2    
+busybox                                  1.37.0-r30                                 apk         CVE-2025-60876       Medium      0.3% (16th)  0.1    
+busybox-binsh                            1.37.0-r30                                 apk         CVE-2025-60876       Medium      0.3% (16th)  0.1    
+busybox-extras                           1.37.0-r30                                 apk         CVE-2025-60876       Medium      0.3% (16th)  0.1    
+ssl_client                               1.37.0-r30                                 apk         CVE-2025-60876       Medium      0.3% (16th)  0.1    
+curl                                     8.19.0-r0                                  apk         CVE-2026-4873        Medium      0.3% (17th)  0.1    
+sqlite-libs                              3.51.2-r0                                  apk         CVE-2026-11822       High        0.2% (7th)   0.1    
+sqlite-libs                              3.51.2-r0                                  apk         CVE-2026-11824       High        0.2% (7th)   0.1    
+golang.org/x/net                         v0.38.0               0.55.0               go-module   GO-2026-5025         Medium      0.2% (15th)  0.1    
+curl                                     8.19.0-r0                                  apk         CVE-2026-7009        Medium      0.3% (18th)  0.1    
+golang.org/x/net                         v0.38.0               0.55.0               go-module   GO-2026-5027         Medium      0.2% (14th)  0.1    
+golang.org/x/net                         v0.38.0               0.55.0               go-module   GO-2026-5029         Medium      0.2% (14th)  0.1    
+golang.org/x/net                         v0.38.0               0.55.0               go-module   GO-2026-5030         Medium      0.2% (14th)  0.1    
+python3                                  3.12.13-r0                                 apk         CVE-2026-2297        Medium      0.2% (10th)  0.1    
+python3                                  3.12.13-r0                                 apk         CVE-2026-6019        Medium      0.2% (13th)  0.1    
+python3                                  3.12.13-r0                                 apk         CVE-2026-3446        Medium      0.2% (8th)   0.1    
+pip                                      25.1.1                26.0                 python      GHSA-6vgw-5pg2-w6jp  Low         0.4% (30th)  < 0.1  
+python3                                  3.12.13-r0                                 apk         CVE-2026-4519        Low         0.2% (11th)  < 0.1  
+k8s.io/kubernetes                        v1.34.8                                    go-module   GO-2025-3547         Low         0.3% (19th)  < 0.1  
+python3                                  3.12.13-r0                                 apk         CVE-2025-13837       Medium      0.2% (8th)   < 0.1  
+pip                                      25.1.1                26.1                 python      GHSA-jp4c-xjxw-mgf9  Medium      0.1% (3rd)   < 0.1  
+python3                                  3.12.13-r0                                 apk         CVE-2026-12003       Medium      0.1% (3rd)   < 0.1  
+pip                                      25.1.1                26.1                 python      GHSA-58qw-9mgm-455v  Medium      0.1% (4th)   < 0.1  
+python3                                  3.12.13-r0                                 apk         CVE-2025-13462       Low         0.2% (5th)   < 0.1  
+golang.org/x/sys                         v0.31.0               0.44.0               go-module   GO-2026-5024         Low         0.1% (4th)   < 0.1  
+pygments                                 2.19.2                2.20.0               python      GHSA-5239-wwwm-4pmq  Low         0.2% (5th)   < 0.1  
+python3                                  3.12.13-r0                                 apk         CVE-2026-3479        Negligible  0.2% (14th)  < 0.1  
+github.com/aws/aws-sdk-go-v2/service/s3  v1.97.1               1.97.3               go-module   GHSA-xmrv-pmrh-hhx2  Medium      N/A          N/A    
+rand                                     0.9.2                 0.9.3                rust-crate  GHSA-cq8v-f236-94qc  Low         N/A          N/A
 
