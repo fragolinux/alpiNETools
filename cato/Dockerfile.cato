@@ -10,9 +10,9 @@ FROM ${GO_BUILDER_IMAGE} AS gobuilder
 
 ARG GO_VERSION
 ARG DSTP_VERSION=0.4.23
-ARG DSTP_XNET_VERSION=v0.38.0
+ARG DSTP_XNET_VERSION=v0.55.0
 ARG K9S_VERSION=v0.51.0
-ARG KUBECTL_SRC_VERSION=v1.34.8
+ARG KUBECTL_SRC_VERSION=v1.34.9
 ARG YQ_VERSION=v4.53.3
 ARG TARGETARCH
 
@@ -50,6 +50,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     git -c advice.detachedHead=false clone --depth 1 --branch v${DSTP_VERSION} https://github.com/ycd/dstp.git /src/dstp && \
     cd /src/dstp && \
     go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
+    go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
     go mod tidy && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
       go install -ldflags "-s -w" ./cmd/dstp && \
@@ -67,6 +68,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} \
       https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
+    GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
+    GOWORK=off GOFLAGS=-mod=mod go mod tidy && \
     KUBE_GIT_MAJOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f1)" && \
     KUBE_GIT_MINOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f2)" && \
     KUBE_GIT_COMMIT="$(git rev-parse --verify HEAD)" && \
@@ -78,7 +81,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -X k8s.io/component-base/version.gitCommit=${KUBE_GIT_COMMIT} \
       -X k8s.io/component-base/version.gitTreeState=clean \
       -X k8s.io/component-base/version.buildDate=${KUBE_BUILD_DATE}" && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
+    GOWORK=off GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOFLAGS=-mod=mod \
       go build -trimpath -ldflags "${KUBE_LDFLAGS}" -o /out/kubectl ./cmd/kubectl && \
     cd / && \
     GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \

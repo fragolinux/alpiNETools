@@ -26,5 +26,5 @@ file               file-5.46
 hurl               hurl 7.1.0 (x86_64-alpine-linux-musl) libcurl/8.19.0 OpenSSL/3.5.7 zlib/1.3.2 brotli/brotli/1.2.0 zstd/zstd/1.5.7 c-ares/1.34.6 libidn2/2.3.8 nghttp2/1.69.0
 dstp               v0.4.23
 k9s                v0.51.0
-kubectl            v1.34.8
+kubectl            v1.34.9
 yq                 v4.53.3

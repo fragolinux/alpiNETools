@@ -73,9 +73,9 @@ docker run --rm -it \
 ## Included tools
 
 ### Kubernetes tools
-- kubectl v1.33.12
-- k9s v0.50.18
-- yq v4.53.2
+- kubectl v1.34.9
+- k9s v0.51.0
+- yq v4.53.3
 
 ### Networking & diagnostics
 - iperf3
