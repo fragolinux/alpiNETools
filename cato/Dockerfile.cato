@@ -103,7 +103,7 @@ RUN apk upgrade --no-cache && \
   bind-tools=9.20.23-r0 \
   bind-libs=9.20.23-r0 \
   libcap=2.78-r0 \
-  libssh2=1.11.1-r2 \
+  libssh2=1.11.1-r3 \
   libxml2=2.13.9-r1 \
   nghttp2-libs=1.69.0-r0 \
     libexpat=2.8.1-r0 \
