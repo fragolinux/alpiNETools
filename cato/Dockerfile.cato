@@ -119,7 +119,7 @@ RUN apk upgrade --no-cache && \
     iputils \
     traceroute \
     mtr \
-    socat=1.8.1.2-r0 \
+    socat=1.8.1.3-r0 \
     netcat-openbsd \
     busybox-extras \
     jq \
