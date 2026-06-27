@@ -103,7 +103,7 @@ RUN apk upgrade --no-cache && \
     iputils \
     traceroute \
     mtr \
-    socat \
+    socat=1.8.1.2-r0 \
     netcat-openbsd \
     busybox-extras \
     jq \
