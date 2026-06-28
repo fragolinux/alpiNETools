@@ -65,7 +65,7 @@ jobs:
           load: true
           tags: alpinetools:copilot-scan
           build-args: |
-            GO_VERSION=1.25.10
+            GO_VERSION=1.25.11
           cache-from: type=gha
 
       - name: Trivy scan
