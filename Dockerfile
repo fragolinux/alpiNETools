@@ -40,6 +40,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       go install -ldflags "-s -w" ./cmd/dstp && \
     git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
     cd /src/k9s && \
+    go mod edit -require=oras.land/oras-go/v2@v2.6.1 && \
+    go mod edit -replace=oras.land/oras-go/v2=oras.land/oras-go/v2@v2.6.1 && \
     go mod edit -replace=github.com/containerd/containerd=github.com/containerd/containerd@v1.7.33 && \
     go mod edit -replace=github.com/containerd/containerd/v2=github.com/containerd/containerd/v2@v2.2.5 && \
     go mod tidy && \

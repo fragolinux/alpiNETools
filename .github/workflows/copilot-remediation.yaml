@@ -52,7 +52,7 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           cache: false
-          version: v0.71.2
+          version: v0.72.0
 
       - uses: docker/setup-buildx-action@v4.1.0
 
@@ -117,9 +117,27 @@ jobs:
           .github/scripts/render-copilot-remediation-issue.sh trivy-results.json trivy-results.txt copilot-issue.md
           echo "issue_body_file=copilot-issue.md" >> "$GITHUB_OUTPUT"
 
+      - name: Find or reuse Copilot remediation issue
+        id: find_or_create_issue
+        if: steps.scan_status.outputs.has_vulns == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # try to find an open issue labeled copilot-remediation
+          issue_num=$(gh issue list --label copilot-remediation --state open --json number,title --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$issue_num" ] && [ "$issue_num" != "null" ]; then
+            gh issue comment "$issue_num" -b "New remediation attempt: ${GITHUB_RUN_ID} — updating info and re-using this issue."
+            echo "issue_number=$issue_num" >> "$GITHUB_OUTPUT"
+            echo "reused=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "issue_number=" >> "$GITHUB_OUTPUT"
+            echo "reused=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create Copilot issue
         id: create_issue
-        if: steps.scan_status.outputs.has_vulns == 'true'
+        if: steps.scan_status.outputs.has_vulns == 'true' && steps.find_or_create_issue.outputs.reused == 'false'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           ATTEMPT: ${{ steps.params.outputs.attempt }}
@@ -132,6 +150,7 @@ jobs:
           fi
 
           issue_title="Copilot remediation attempt ${ATTEMPT}: fix Trivy findings on ${BASE_BRANCH}"
+
           jq -n \
             --arg title "$issue_title" \
             --rawfile body "$ISSUE_BODY_FILE" \
@@ -140,6 +159,7 @@ jobs:
             '{
               title: $title,
               body: $body,
+              labels: ["copilot-remediation"],
               assignees: ["copilot-swe-agent[bot]"],
               agent_assignment: {
                 target_repo: $repo,
@@ -162,17 +182,64 @@ jobs:
           echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
           echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Copilot issue number
+        id: resolve_issue
+        if: steps.scan_status.outputs.has_vulns == 'true'
+        run: |
+          issue_num="${{ steps.find_or_create_issue.outputs.issue_number }}"
+          if [ -z "$issue_num" ]; then
+            issue_num="${{ steps.create_issue.outputs.issue_number }}"
+          fi
+          echo "issue_number=$issue_num" >> "$GITHUB_OUTPUT"
+
       - name: Wait for Copilot pull request
         id: wait_for_pr
-        if: steps.create_issue.outcome == 'success'
+        if: steps.resolve_issue.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
-          ISSUE_NUMBER: ${{ steps.create_issue.outputs.issue_number }}
+          ISSUE_NUMBER: ${{ steps.resolve_issue.outputs.issue_number }}
           WAIT_MINUTES: ${{ env.COPILOT_WAIT_MINUTES }}
         run: |
           chmod +x .github/scripts/await-copilot-pr.sh
           .github/scripts/await-copilot-pr.sh > copilot-pr.env
           cat copilot-pr.env >> "$GITHUB_OUTPUT"
+
+      - name: Auto-close Copilot remediation issue when resolved
+        if: steps.resolve_issue.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          ISSUE_NUMBER: ${{ steps.resolve_issue.outputs.issue_number }}
+          VULN_COUNT: ${{ steps.scan_status.outputs.vuln_count }}
+          PR_URL: ${{ steps.wait_for_pr.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          owner_repo="${GITHUB_REPOSITORY}"
+          issue_num="${ISSUE_NUMBER}"
+          echo "Checking whether to close issue #${issue_num} (vuln_count=${VULN_COUNT}, pr_url=${PR_URL})"
+
+          if [ "$VULN_COUNT" = "0" ] || [ -z "$VULN_COUNT" ]; then
+            gh issue comment "$issue_num" -b "Verified fixed by Trivy scan (no HIGH/CRITICAL findings). Closing this Copilot remediation issue." || true
+            gh api -X PATCH /repos/${owner_repo}/issues/${issue_num} -f state=closed || true
+            echo "closed=closed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -n "${PR_URL:-}" ]; then
+            pr_number=$(basename "${PR_URL}")
+            merged=$(gh api /repos/${owner_repo}/pulls/${pr_number} -q .merged || echo "false")
+            if [ "$merged" = "true" ]; then
+              gh issue comment "$issue_num" -b "Copilot remediation PR #${pr_number} has been merged. Closing this issue." || true
+              gh api -X PATCH /repos/${owner_repo}/issues/${issue_num} -f state=closed || true
+              echo "closed=merged" >> "$GITHUB_OUTPUT"
+              exit 0
+            else
+              gh issue comment "$issue_num" -b "Copilot opened PR ${PR_URL} but it is not merged yet. Leaving issue open until merge or verification." || true
+              echo "closed=not_merged" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "No PR detected and vulnerabilities remain; not closing issue." >> "$GITHUB_STEP_SUMMARY"
+            echo "closed=no" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Retry by redispatching workflow
         if: |
