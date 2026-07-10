@@ -92,6 +92,7 @@ RUN apk upgrade --no-cache && \
   libssh2=1.11.1-r3 \
   libxml2=2.13.9-r1 \
   nghttp2-libs=1.69.0-r0 \
+  c-ares=1.34.8-r0 \
     libexpat=2.8.2-r0 \
     zlib \
     && apk add --no-cache \
