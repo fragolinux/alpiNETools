@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 ARG GO_BUILDER_IMAGE=dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee
 ARG FINAL_BASE_IMAGE=dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
-ARG GO_VERSION=1.25.11
+ARG GO_VERSION=1.25.12
 
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
@@ -40,13 +40,13 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       go install -ldflags "-s -w" ./cmd/dstp && \
     git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
     cd /src/k9s && \
-    go mod edit -require=oras.land/oras-go/v2@v2.6.1 && \
-    go mod edit -replace=oras.land/oras-go/v2=oras.land/oras-go/v2@v2.6.1 && \
+    GOPROXY=direct go mod edit -require=oras.land/oras-go/v2@v2.6.2 && \
+    GOPROXY=direct go mod edit -replace=oras.land/oras-go/v2=oras.land/oras-go/v2@v2.6.2 && \
     go mod edit -replace=github.com/containerd/containerd=github.com/containerd/containerd@v1.7.33 && \
     go mod edit -replace=github.com/containerd/containerd/v2=github.com/containerd/containerd/v2@v2.2.5 && \
-    go mod tidy && \
+    GOPROXY=direct go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOPROXY=direct \
       go install -ldflags "-s -w \
         -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} \
         -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} \
