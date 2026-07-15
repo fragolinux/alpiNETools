@@ -19,7 +19,6 @@ ARG TARGETARCH
 RUN apk add --no-cache --upgrade git ca-certificates tar && \
     update-ca-certificates
 
-# Inject Cato CA bundle (local-only via BuildKit secret).
 # The secret can be a multi-cert bundle, so use it directly for TLS clients.
 RUN --mount=type=secret,id=cato_ca,target=/run/secrets/cato_ca,required=false \
     if [ -s /run/secrets/cato_ca ]; then \

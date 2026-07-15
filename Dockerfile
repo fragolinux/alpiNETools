@@ -36,8 +36,10 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
     go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
     go mod tidy && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install -ldflags "-s -w" ./cmd/dstp && \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" go install -ldflags "-s -w" ./cmd/dstp
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
     git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
     cd /src/k9s && \
     GOPROXY=direct go mod edit -require=oras.land/oras-go/v2@v2.6.2 && \
@@ -46,13 +48,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go mod edit -replace=github.com/containerd/containerd/v2=github.com/containerd/containerd/v2@v2.2.5 && \
     GOPROXY=direct go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOPROXY=direct \
-      go install -ldflags "-s -w \
-        -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} \
-        -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} \
-        -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}" && \
-    git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} \
-      https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOPROXY=direct go install -ldflags "-s -w -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}"
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
     GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
     GOWORK=off GOFLAGS=-mod=mod go mod tidy && \
@@ -60,18 +60,12 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     KUBE_GIT_MINOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f2)" && \
     KUBE_GIT_COMMIT="$(git rev-parse --verify HEAD)" && \
     KUBE_BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" && \
-    KUBE_LDFLAGS="-s -w \
-      -X k8s.io/component-base/version.gitMajor=${KUBE_GIT_MAJOR} \
-      -X k8s.io/component-base/version.gitMinor=${KUBE_GIT_MINOR} \
-      -X k8s.io/component-base/version.gitVersion=${KUBECTL_SRC_VERSION} \
-      -X k8s.io/component-base/version.gitCommit=${KUBE_GIT_COMMIT} \
-      -X k8s.io/component-base/version.gitTreeState=clean \
-      -X k8s.io/component-base/version.buildDate=${KUBE_BUILD_DATE}" && \
-    GOWORK=off GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOFLAGS=-mod=mod \
-      go build -trimpath -ldflags "${KUBE_LDFLAGS}" -o /out/kubectl ./cmd/kubectl && \
-    cd / && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install -ldflags "-s -w" github.com/mikefarah/yq/v4@${YQ_VERSION}
+    KUBE_LDFLAGS="-s -w -X k8s.io/component-base/version.gitMajor=${KUBE_GIT_MAJOR} -X k8s.io/component-base/version.gitMinor=${KUBE_GIT_MINOR} -X k8s.io/component-base/version.gitVersion=${KUBECTL_SRC_VERSION} -X k8s.io/component-base/version.gitCommit=${KUBE_GIT_COMMIT} -X k8s.io/component-base/version.gitTreeState=clean -X k8s.io/component-base/version.buildDate=${KUBE_BUILD_DATE}" && \
+    GOWORK=off GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOFLAGS=-mod=mod go build -trimpath -ldflags "${KUBE_LDFLAGS}" -o /out/kubectl ./cmd/kubectl
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" go install -ldflags "-s -w" github.com/mikefarah/yq/v4@${YQ_VERSION}
 
 ########################################
 # FINAL IMAGE
