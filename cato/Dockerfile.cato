@@ -113,7 +113,8 @@ RUN apk upgrade --no-cache && \
     zlib \
     && apk add --no-cache \
     bash \
-    curl \
+    curl=8.20.0-r0 \
+    libcurl=8.20.0-r0 \
     ca-certificates \
     iperf3 \
     tcpdump \
