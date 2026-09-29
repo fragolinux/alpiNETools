@@ -3,13 +3,13 @@
 IMAGE ?= alpinetools:local
 DOCKERFILE ?= Dockerfile.cato
 CATO_BUNDLE ?= $(HOME)/.cato/ca-bundle.crt
-GO_BUILDER_IMAGE ?= dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee
-FINAL_BASE_IMAGE ?= dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
-GO_VERSION ?= 1.25.12
+GO_BUILDER_IMAGE ?= dhi.io/golang:1-alpine3.24-dev@sha256:0fbbb101cb3c451453aa0d3e7a87c378c6bd784d8cfbfd4958f97dd3bd0197e6
+FINAL_BASE_IMAGE ?= dhi.io/alpine-base:3.24-alpine3.24-dev@sha256:e8ea5cd1031f302d73920e38c0c9ff4090368f5ddbbfae519de9ea24865464bd
+GO_VERSION ?= 1.26.8
 DSTP_VERSION ?= 0.4.23
 K9S_VERSION ?= v0.51.0
 KUBECTL_SRC_VERSION ?= v1.34.9
-YQ_VERSION ?= v4.53.3
+YQ_VERSION ?= v4.54.1
 ARCH ?= $(shell uname -m)
 PLATFORM ?= $(if $(filter arm64 aarch64,$(ARCH)),linux/arm64,linux/amd64)
 

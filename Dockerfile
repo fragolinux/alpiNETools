@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
-ARG GO_BUILDER_IMAGE=dhi.io/golang:1-alpine3.23-dev@sha256:b2b4bb49fde981b8077960336cb0e9e8a174ecdaa2f2562a9603911bdfbf38ee
-ARG FINAL_BASE_IMAGE=dhi.io/alpine-base:3.23-alpine3.23-dev@sha256:06cc40ca62d2bdc8d4b3b46ad626498d79e005e751d423e4a0d49a3c029743b4
-ARG GO_VERSION=1.25.12
+ARG GO_BUILDER_IMAGE=dhi.io/golang:1-alpine3.24-dev@sha256:0fbbb101cb3c451453aa0d3e7a87c378c6bd784d8cfbfd4958f97dd3bd0197e6
+ARG FINAL_BASE_IMAGE=dhi.io/alpine-base:3.24-alpine3.24-dev@sha256:e8ea5cd1031f302d73920e38c0c9ff4090368f5ddbbfae519de9ea24865464bd
+ARG GO_VERSION=1.26.8
 
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
@@ -10,10 +10,10 @@ FROM ${GO_BUILDER_IMAGE} AS gobuilder
 
 ARG GO_VERSION
 ARG DSTP_VERSION=0.4.23
-ARG DSTP_XNET_VERSION=v0.55.0
+ARG DSTP_XNET_VERSION=v0.56.0
 ARG K9S_VERSION=v0.51.0
 ARG KUBECTL_SRC_VERSION=v1.34.9
-ARG YQ_VERSION=v4.53.3
+ARG YQ_VERSION=v4.54.1
 ARG TARGETARCH
 
 RUN apk add --no-cache --upgrade git ca-certificates tar && \
@@ -42,19 +42,39 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
     cd /src/k9s && \
-    GOPROXY=direct go mod edit -require=oras.land/oras-go/v2@v2.6.2 && \
-    GOPROXY=direct go mod edit -replace=oras.land/oras-go/v2=oras.land/oras-go/v2@v2.6.2 && \
-    go mod edit -replace=github.com/containerd/containerd=github.com/containerd/containerd@v1.7.33 && \
-    go mod edit -replace=github.com/containerd/containerd/v2=github.com/containerd/containerd/v2@v2.2.5 && \
-    GOPROXY=direct go mod tidy && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=oras.land/oras-go/v2@v2.6.2 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=oras.land/oras-go/v2=oras.land/oras-go/v2@v2.6.2 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=github.com/aws/aws-sdk-go-v2/service/s3=github.com/aws/aws-sdk-go-v2/service/s3@v1.97.3 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=go.opentelemetry.io/otel=go.opentelemetry.io/otel@v1.45.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=go.opentelemetry.io/otel/sdk=go.opentelemetry.io/otel/sdk@v1.45.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=github.com/go-git/go-git/v5@v5.19.2 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=github.com/aws/aws-sdk-go-v2/service/s3@v1.97.3 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=go.opentelemetry.io/otel@v1.45.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=go.opentelemetry.io/otel/sdk@v1.45.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/crypto@v0.56.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/mod@v0.40.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/net@v0.56.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/text@v0.39.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=google.golang.org/grpc@v1.83.2 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/crypto=golang.org/x/crypto@v0.56.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/mod=golang.org/x/mod@v0.40.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/net=golang.org/x/net@v0.56.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.39.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=google.golang.org/grpc=google.golang.org/grpc@v1.83.2 && \
+    go mod edit -replace=github.com/containerd/containerd=github.com/containerd/containerd@v1.7.36 && \
+    go mod edit -replace=github.com/containerd/containerd/v2=github.com/containerd/containerd/v2@v2.2.9 && \
+    GOPROXY=https://proxy.golang.org,direct go mod tidy && \
     BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOPROXY=direct go install -ldflags "-s -w -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}"
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOPROXY=https://proxy.golang.org,direct go install -ldflags "-s -w -X github.com/derailed/k9s/cmd.version=${K9S_VERSION} -X github.com/derailed/k9s/cmd.commit=${K9S_VERSION} -X github.com/derailed/k9s/cmd.date=${BUILD_DATE}"
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     git -c advice.detachedHead=false clone --depth 1 --branch ${KUBECTL_SRC_VERSION} https://github.com/kubernetes/kubernetes.git /src/kubernetes && \
     cd /src/kubernetes && \
+    GOWORK=off GOFLAGS=-mod=mod go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
     GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
+    GOWORK=off GOFLAGS=-mod=mod go mod edit -require=golang.org/x/text@v0.39.0 && \
+    GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.39.0 && \
     GOWORK=off GOFLAGS=-mod=mod go mod tidy && \
     KUBE_GIT_MAJOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f1)" && \
     KUBE_GIT_MINOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f2)" && \
@@ -74,47 +94,51 @@ FROM ${FINAL_BASE_IMAGE}
 
 ARG TARGETARCH
 
-RUN apk upgrade --no-cache && \
+RUN apk upgrade --available --no-cache && \
   apk add --no-cache --upgrade \
-  expat=2.8.2-r0 \
-  libcrypto3=3.5.7-r0 \
-  libssl3=3.5.7-r0 \
-  musl=1.2.5-r23 \
-  bind-tools=9.20.23-r0 \
-  bind-libs=9.20.23-r0 \
-  libcap=2.78-r0 \
-  libssh2=1.11.1-r3 \
-  libxml2=2.13.9-r1 \
-  nghttp2-libs=1.69.0-r0 \
-  c-ares=1.34.8-r0 \
-    libexpat=2.8.2-r0 \
+    expat \
+    libcrypto3 \
+    libssl3 \
+    musl \
+    bind-tools \
+    bind-libs \
+    libpcap \
+    python3 \
+    sqlite-libs \
+    jq \
+    gzip \
+    libcap \
+    libssh2 \
+    libxml2 \
+    nghttp2-libs \
+    c-ares \
+    libexpat \
     zlib \
     && apk add --no-cache \
     bash \
-    curl=8.20.0-r0 \
-    libcurl=8.20.0-r0 \
+    curl \
+    libcurl \
     ca-certificates \
     iperf3 \
     tcpdump \
     net-tools \
     iproute2 \
     iputils \
-    traceroute \
-    mtr \
-    socat=1.8.1.3-r0 \
+    socat \
     netcat-openbsd \
     busybox-extras \
     jq \
-    trurl \
-    httpie \
     tar \
     gzip \
     bzip2 \
-    openssl=3.5.7-r0 \
+    openssl \
     file \
     nmap \
     nano \
-    bash-completion
+        bash-completion && \
+        apk add --no-cache \
+            --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/community \
+            httpie mtr traceroute trurl
 
 # If you ever need sudo inside the container, re-add:
 #   apk add --no-cache sudo
