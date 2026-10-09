@@ -1,4 +1,4 @@
-== TRIVY (2026-10-09T19:16:28Z) ==
+== TRIVY (2026-10-09T20:03:12Z) ==
 
 Report Summary
 
@@ -20,10 +20,10 @@ Legend:
 - '0': Clean (no security findings detected)
 
 
-== DOCKER SCOUT (2026-10-09T19:16:29Z) ==
+== DOCKER SCOUT (2026-10-09T20:03:13Z) ==
 WARNING: docker scout command failed (for example missing login). Continuing with Trivy + Grype.
 
-== GRYPE (2026-10-09T19:16:35Z) ==
+== GRYPE (2026-10-09T20:03:19Z) ==
 NAME                              INSTALLED      FIXED IN         TYPE        VULNERABILITY        SEVERITY  EPSS          RISK   
 nmap                              7.99-r1                         apk         CVE-2026-58058       Medium    1.5% (72nd)   0.9    
 libssh2                           1.11.1-r4                       apk         CVE-2026-66033       High      0.7% (51st)   0.5    
@@ -108,15 +108,5 @@ libssh2                           1.11.1-r4                       apk         CV
 tar                               1.35-r5                         apk         CVE-2026-18477       Medium    < 0.1% (0th)  < 0.1  
 github.com/moby/sys/user          v0.4.0         0.4.1            go-module   GHSA-mjcv-p78q-w5fw  Medium    N/A           N/A    
 github.com/klauspost/compress     v1.18.5        1.18.7           go-module   GO-2026-5841         Unknown   N/A           N/A    
-golang.org/x/crypto               v0.56.0                         go-module   GO-2026-5932         Unknown   N/A           N/A    
-golang.org/x/net                  v0.56.0        0.60.0           go-module   GO-2026-6603         Unknown   N/A           N/A    
-golang.org/x/net                  v0.56.0        0.60.0           go-module   GO-2026-6610         Unknown   N/A           N/A    
-golang.org/x/net                  v0.56.0        0.60.0           go-module   GO-2026-6611         Unknown   N/A           N/A    
-golang.org/x/net                  v0.56.0        0.60.0           go-module   GO-2026-6612         Unknown   N/A           N/A    
-golang.org/x/net                  v0.56.0        0.60.0           go-module   GO-2026-6617         Unknown   N/A           N/A    
-golang.org/x/net                  v0.59.0        0.60.0           go-module   GO-2026-6603         Unknown   N/A           N/A    
-golang.org/x/net                  v0.59.0        0.60.0           go-module   GO-2026-6610         Unknown   N/A           N/A    
-golang.org/x/net                  v0.59.0        0.60.0           go-module   GO-2026-6611         Unknown   N/A           N/A    
-golang.org/x/net                  v0.59.0        0.60.0           go-module   GO-2026-6612         Unknown   N/A           N/A    
-golang.org/x/net                  v0.59.0        0.60.0           go-module   GO-2026-6617         Unknown   N/A           N/A
+golang.org/x/crypto               v0.56.0                         go-module   GO-2026-5932         Unknown   N/A           N/A
 

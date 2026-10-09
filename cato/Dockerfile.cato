@@ -10,7 +10,7 @@ FROM ${GO_BUILDER_IMAGE} AS gobuilder
 
 ARG GO_VERSION
 ARG DSTP_VERSION=0.4.23
-ARG DSTP_XNET_VERSION=v0.56.0
+ARG DSTP_XNET_VERSION=v0.60.0
 ARG K9S_VERSION=v0.51.0
 ARG KUBECTL_SRC_VERSION=v1.34.9
 ARG YQ_VERSION=v4.54.1
@@ -66,12 +66,12 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=go.opentelemetry.io/otel/sdk@v1.45.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/crypto@v0.56.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/mod@v0.40.0 && \
-    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/net@v0.56.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/text@v0.39.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=google.golang.org/grpc@v1.83.2 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/crypto=golang.org/x/crypto@v0.56.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/mod=golang.org/x/mod@v0.40.0 && \
-    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/net=golang.org/x/net@v0.56.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.39.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=google.golang.org/grpc=google.golang.org/grpc@v1.83.2 && \
     go mod edit -replace=github.com/containerd/containerd=github.com/containerd/containerd@v1.7.36 && \
@@ -104,9 +104,12 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -X k8s.io/component-base/version.buildDate=${KUBE_BUILD_DATE}" && \
     GOWORK=off GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" GOFLAGS=-mod=mod \
       go build -trimpath -ldflags "${KUBE_LDFLAGS}" -o /out/kubectl ./cmd/kubectl && \
-    cd / && \
-    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" \
-      go install -ldflags "-s -w" github.com/mikefarah/yq/v4@${YQ_VERSION}
+    git -c advice.detachedHead=false clone --depth 1 --branch ${YQ_VERSION} https://github.com/mikefarah/yq.git /src/yq && \
+    cd /src/yq && \
+    go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
+    go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
+    go mod tidy && \
+    GOBIN=/out GOOS=linux GOARCH="${TARGETARCH}" go install -ldflags "-s -w" .
 
 ########################################
 # FINAL IMAGE
