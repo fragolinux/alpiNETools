@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 ARG GO_BUILDER_IMAGE=dhi.io/golang:1-alpine3.24-dev@sha256:0fbbb101cb3c451453aa0d3e7a87c378c6bd784d8cfbfd4958f97dd3bd0197e6
 ARG FINAL_BASE_IMAGE=dhi.io/alpine-base:3.24-alpine3.24-dev@sha256:e8ea5cd1031f302d73920e38c0c9ff4090368f5ddbbfae519de9ea24865464bd
-ARG GO_VERSION=1.26.8
+ARG GO_VERSION=1.26.9
 
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
