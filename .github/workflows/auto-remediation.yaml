@@ -41,7 +41,7 @@ jobs:
           load: true
           tags: alpinetools:scan
           build-args: |
-            GO_VERSION=1.26.9
+            GO_VERSION=1.26.10
           cache-from: type=gha
 
       # Scan and save results
@@ -131,7 +131,7 @@ jobs:
           load: true
           tags: alpinetools:scan-fixed
           build-args: |
-            GO_VERSION=1.26.9
+            GO_VERSION=1.26.10
 
       - name: Rescan fixed image
         id: rescan

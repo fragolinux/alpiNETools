@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 ARG GO_BUILDER_IMAGE=dhi.io/golang:1-alpine3.24-dev@sha256:0fbbb101cb3c451453aa0d3e7a87c378c6bd784d8cfbfd4958f97dd3bd0197e6
 ARG FINAL_BASE_IMAGE=dhi.io/alpine-base:3.24-alpine3.24-dev@sha256:e8ea5cd1031f302d73920e38c0c9ff4090368f5ddbbfae519de9ea24865464bd
-ARG GO_VERSION=1.26.9
+ARG GO_VERSION=1.26.10
 
 ########################################
 # GO BUILDER STAGE (Cato CA for local builds)
@@ -54,12 +54,12 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/crypto@v0.56.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/mod@v0.40.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
-    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/text@v0.39.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=golang.org/x/text@v0.41.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=google.golang.org/grpc@v1.83.2 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/crypto=golang.org/x/crypto@v0.56.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/mod=golang.org/x/mod@v0.40.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
-    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.39.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.41.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=google.golang.org/grpc=google.golang.org/grpc@v1.83.2 && \
     go mod edit -replace=github.com/containerd/containerd=github.com/containerd/containerd@v1.7.36 && \
     go mod edit -replace=github.com/containerd/containerd/v2=github.com/containerd/containerd/v2@v2.2.9 && \
@@ -73,8 +73,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     cd /src/kubernetes && \
     GOWORK=off GOFLAGS=-mod=mod go mod edit -require=golang.org/x/net@${DSTP_XNET_VERSION} && \
     GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/net=golang.org/x/net@${DSTP_XNET_VERSION} && \
-    GOWORK=off GOFLAGS=-mod=mod go mod edit -require=golang.org/x/text@v0.39.0 && \
-    GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.39.0 && \
+    GOWORK=off GOFLAGS=-mod=mod go mod edit -require=golang.org/x/text@v0.41.0 && \
+    GOWORK=off GOFLAGS=-mod=mod go mod edit -replace=golang.org/x/text=golang.org/x/text@v0.41.0 && \
     GOWORK=off GOFLAGS=-mod=mod go mod tidy && \
     KUBE_GIT_MAJOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f1)" && \
     KUBE_GIT_MINOR="$(echo "${KUBECTL_SRC_VERSION#v}" | cut -d. -f2)" && \
