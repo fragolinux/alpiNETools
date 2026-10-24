@@ -104,6 +104,8 @@ RUN apk upgrade --available --no-cache && \
     expat \
     libcrypto3 \
     libssl3 \
+    libexpat \
+    brotli-libs \
     musl \
     bind-tools \
     bind-libs \
