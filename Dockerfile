@@ -42,6 +42,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     git -c advice.detachedHead=false clone --depth 1 --branch ${K9S_VERSION} https://github.com/derailed/k9s.git /src/k9s && \
     cd /src/k9s && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=github.com/klauspost/compress@v1.18.7 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=github.com/klauspost/compress=github.com/klauspost/compress@v1.18.7 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=oras.land/oras-go/v2@v2.6.2 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=oras.land/oras-go/v2=oras.land/oras-go/v2@v2.6.2 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=github.com/aws/aws-sdk-go-v2/service/s3=github.com/aws/aws-sdk-go-v2/service/s3@v1.97.3 && \
@@ -99,8 +101,14 @@ FROM ${FINAL_BASE_IMAGE}
 
 ARG TARGETARCH
 
-RUN apk upgrade --available --no-cache && \
-  apk add --no-cache --upgrade \
+RUN printf '%s\n' \
+      'https://dl-cdn.alpinelinux.org/alpine/v3.24/main' \
+      'https://dl-cdn.alpinelinux.org/alpine/v3.24/community' \
+      > /etc/apk/repositories && \
+    apk update && \
+    apk upgrade --available --no-cache && \
+    apk add --no-cache --upgrade \
+    brotli-libs \
     expat \
     libcrypto3 \
     libssl3 \
@@ -117,12 +125,12 @@ RUN apk upgrade --available --no-cache && \
     libxml2 \
     nghttp2-libs \
     c-ares \
+    curl=8.23.0-r0 \
+    libcurl=8.23.0-r0 \
     libexpat \
     zlib \
     && apk add --no-cache \
     bash \
-    curl \
-    libcurl \
     ca-certificates \
     iperf3 \
     tcpdump \
