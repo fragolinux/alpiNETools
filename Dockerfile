@@ -49,6 +49,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=github.com/aws/aws-sdk-go-v2/service/s3=github.com/aws/aws-sdk-go-v2/service/s3@v1.97.3 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=go.opentelemetry.io/otel=go.opentelemetry.io/otel@v1.45.0 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -replace=go.opentelemetry.io/otel/sdk=go.opentelemetry.io/otel/sdk@v1.45.0 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -require=github.com/go-jose/go-jose/v4@v4.1.6 && \
+    GOPROXY=https://proxy.golang.org,direct go mod edit -replace=github.com/go-jose/go-jose/v4=github.com/go-jose/go-jose/v4@v4.1.6 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=github.com/go-git/go-git/v5@v5.19.2 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=github.com/aws/aws-sdk-go-v2/service/s3@v1.97.3 && \
     GOPROXY=https://proxy.golang.org,direct go mod edit -require=go.opentelemetry.io/otel@v1.45.0 && \
@@ -116,7 +118,7 @@ RUN printf '%s\n' \
     bind-tools \
     bind-libs \
     libpcap \
-    python3 \
+    python3=3.14.10-r1 \
     sqlite-libs \
     jq \
     gzip \
