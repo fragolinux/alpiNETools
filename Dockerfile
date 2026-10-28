@@ -112,6 +112,9 @@ RUN printf '%s\n' \
     expat \
     libcrypto3 \
     libssl3 \
+    python3-pycache-pyc0 \
+    python3-pyc \
+    pyc \
     musl \
     bind-tools \
     bind-libs \
