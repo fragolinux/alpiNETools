@@ -114,6 +114,7 @@ RUN printf '%s\n' \
     expat \
     libcrypto3 \
     libssl3 \
+    libexpat \
     musl \
     bind-tools \
     bind-libs \
