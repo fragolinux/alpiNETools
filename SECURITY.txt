@@ -1,4 +1,4 @@
-== TRIVY (2026-11-20T20:45:53Z) ==
+== TRIVY (2026-11-21T20:42:24Z) ==
 
 Report Summary
 
@@ -20,14 +20,17 @@ Legend:
 - '0': Clean (no security findings detected)
 
 
-== DOCKER SCOUT (2026-11-20T20:45:54Z) ==
+== DOCKER SCOUT (2026-11-21T20:42:25Z) ==
 WARNING: docker scout command failed (for example missing login). Continuing with Trivy + Grype.
 
-== GRYPE (2026-11-20T20:45:59Z) ==
+== GRYPE (2026-11-21T20:42:34Z) ==
 NAME                              INSTALLED                           FIXED IN          TYPE        VULNERABILITY        SEVERITY    EPSS          RISK          
 github.com/andybalholm/brotli     v1.2.0                              1.2.7             go-module   GO-2026-6888         Critical    82.4% (99th)  98.7   (kev)  
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119586      High        1.5% (75th)   1.2           
 nmap                              7.99-r0                                               apk         CVE-2026-58058       Medium      1.5% (74th)   0.9           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-124709      High        0.6% (48th)   0.4           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-124709      High        0.6% (48th)   0.4           
+openssl                           3.5.9-r1                                              apk         CVE-2026-124709      High        0.6% (48th)   0.4           
 hurl                              8.0.1                                                 rust-crate  GHSA-7w2g-9mf9-324m  Medium      0.7% (52nd)   0.4           
 python3                           3.14.10-r1                                            apk         CVE-2026-119170      High        0.5% (42nd)   0.4           
 github.com/containerd/containerd  v1.7.36                                               go-module   GO-2026-5064         Critical    0.4% (29th)   0.3           
@@ -44,8 +47,17 @@ go.opentelemetry.io/otel/trace    v1.45.0                             1.47.0    
 libssh2                           1.11.1-r4                                             apk         CVE-2026-59850       High        0.3% (28th)   0.2           
 multidict                         6.7.1                               6.9.1             python      GHSA-54p9-h82j-f925  Medium      0.4% (39th)   0.2           
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119379      High        0.3% (20th)   0.2           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-107494      High        0.3% (22nd)   0.2           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-107494      High        0.3% (22nd)   0.2           
+openssl                           3.5.9-r1                                              apk         CVE-2026-107494      High        0.3% (22nd)   0.2           
 stdlib                            go1.26.10                           *1.26.11, 1.27.4  go-module   GO-2026-6859         Medium      0.4% (32nd)   0.2           
 python3                           3.14.10-r1                                            apk         CVE-2025-15367       Medium      0.4% (32nd)   0.2           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-121482      High        0.3% (18th)   0.2           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-121482      High        0.3% (18th)   0.2           
+openssl                           3.5.9-r1                                              apk         CVE-2026-121482      High        0.3% (18th)   0.2           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-95690       Medium      0.4% (29th)   0.2           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-95690       Medium      0.4% (29th)   0.2           
+openssl                           3.5.9-r1                                              apk         CVE-2026-95690       Medium      0.4% (29th)   0.2           
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119374      High        0.2% (14th)   0.2           
 busybox                           1.37.0-r31                                            apk         CVE-2025-60876       Medium      0.3% (24th)   0.2           
 busybox-binsh                     1.37.0-r31                                            apk         CVE-2025-60876       Medium      0.3% (24th)   0.2           
@@ -59,12 +71,21 @@ pip                               26.1.2                              26.2.0    
 python3                           3.14.10-r1                                            apk         CVE-2026-124249      Medium      0.3% (19th)   0.2           
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119378      Medium      0.3% (16th)   0.1           
 python3                           3.14.10-r1                                            apk         CVE-2026-116566      Medium      0.3% (17th)   0.1           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-84786       High        0.2% (6th)    0.1           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-84786       High        0.2% (6th)    0.1           
+openssl                           3.5.9-r1                                              apk         CVE-2026-84786       High        0.2% (6th)    0.1           
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119373      High        0.2% (5th)    0.1           
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119375      Medium      0.2% (9th)    0.1           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-107493      High        0.1% (3rd)    0.1           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-107493      High        0.1% (3rd)    0.1           
+openssl                           3.5.9-r1                                              apk         CVE-2026-107493      High        0.1% (3rd)    0.1           
 github.com/hashicorp/go-getter    v1.8.6                              *1.8.10, 2.2.5    go-module   CVE-2026-19585       Medium      0.2% (11th)   0.1           
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119371      Medium      0.2% (8th)    0.1           
 python3                           3.14.10-r1                                            apk         CVE-2026-115559      Medium      0.2% (8th)    0.1           
-sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119376      Medium      0.2% (7th)    0.1           
+libcrypto3                        3.5.9-r1                                              apk         CVE-2026-35190       Medium      0.2% (10th)   0.1           
+libssl3                           3.5.9-r1                                              apk         CVE-2026-35190       Medium      0.2% (10th)   0.1           
+openssl                           3.5.9-r1                                              apk         CVE-2026-35190       Medium      0.2% (10th)   0.1           
+sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119376      Medium      0.2% (8th)    0.1           
 github.com/containerd/containerd  v1.7.36                                               go-module   GO-2026-5622         Medium      0.2% (7th)    0.1           
 k8s.io/kubernetes                 v1.34.9+dirty                                         go-module   GO-2025-3547         Low         0.3% (25th)   < 0.1         
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119591      Medium      0.2% (6th)    < 0.1         
@@ -80,6 +101,9 @@ tar                               1.35-r5                                       
 libssh2                           1.11.1-r4                                             apk         CVE-2026-59846       Low         0.1% (1st)    < 0.1         
 sqlite-libs                       3.53.4-r0                                             apk         CVE-2026-119377      Low         0.1% (2nd)    < 0.1         
 python3                           3.14.10-r1                                            apk         CVE-2026-19552       Negligible  0.3% (23rd)   < 0.1         
+py3-pip                           26.1.2-r0                           26.1.2-r1         apk         CVE-2026-133949      Critical    N/A           N/A           
+py3-pip-bash-completion           26.1.2-r0                           26.1.2-r1         apk         CVE-2026-133949      Critical    N/A           N/A           
+py3-pip-pyc                       26.1.2-r0                           26.1.2-r1         apk         CVE-2026-133949      Critical    N/A           N/A           
 setuptools                        82.0.1                              84.1.0            python      GHSA-xmj3-9gf7-h52w  Low         N/A           N/A           
 github.com/blakesmith/ar          v0.0.0-20190502131153-809d4375e1fb                    go-module   GO-2026-6905         Unknown     N/A           N/A
 
